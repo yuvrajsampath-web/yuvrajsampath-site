@@ -25,14 +25,15 @@ export function MediaForm({ initial, mediaId }: { initial?: MediaEntry; mediaId?
     setSaving(true);
     setError(null);
     try {
-      const payload = { kind, title, description: description || undefined, url, publishedAt };
+      const payload = { kind, title, url, publishedAt, ...(description ? { description } : {}) };
       if (mediaId) {
         await updateMedia(mediaId, payload);
       } else {
         await createMedia(payload);
       }
       router.push(`/${PORTAL_PATH}`);
-    } catch {
+    } catch (err) {
+      console.error("Failed to save media:", err);
       setError("Couldn't save. Check your connection and try again.");
       setSaving(false);
     }

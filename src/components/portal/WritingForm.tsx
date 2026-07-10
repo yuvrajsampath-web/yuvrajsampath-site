@@ -67,11 +67,11 @@ export function WritingForm({
         category,
         title,
         body,
-        topic: topic || undefined,
-        englishTranslation: englishTranslation || undefined,
         language,
         publishedAt,
-        coverImageUrl: coverImageUrl || undefined,
+        ...(topic ? { topic } : {}),
+        ...(englishTranslation ? { englishTranslation } : {}),
+        ...(coverImageUrl ? { coverImageUrl } : {}),
       };
       if (writingId) {
         await updateWriting(writingId, payload);
@@ -79,7 +79,8 @@ export function WritingForm({
         await createWriting(payload);
       }
       router.push(`/${PORTAL_PATH}`);
-    } catch {
+    } catch (err) {
+      console.error("Failed to save writing:", err);
       setError("Couldn't save. Check your connection and try again.");
       setSaving(false);
     }
