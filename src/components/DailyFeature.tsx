@@ -12,19 +12,19 @@ function formatDate(iso: string) {
 export function DailyFeature({ entry }: { entry: Writing | null }) {
   if (!entry) {
     return (
-      <section className="mx-auto max-w-2xl px-6 py-16 text-center text-muted">
+      <section className="mx-auto max-w-2xl px-6 py-16 text-muted">
         <p>The first குறிஞ்சிட்டு entry will appear here once published.</p>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-2xl px-6 py-16 sm:py-20 text-center">
+    <section className="mx-auto max-w-2xl px-6 py-16 sm:py-20">
       <p className="font-body text-xs tracking-[0.2em] uppercase text-muted">
         {formatDate(entry.publishedAt)}
         {entry.topic ? ` · ${entry.topic}` : ""}
       </p>
-      <p className="mt-8 font-tamil-body text-2xl sm:text-3xl leading-relaxed whitespace-pre-line text-balance">
+      <p className="mt-8 font-tamil-body text-2xl sm:text-3xl leading-relaxed whitespace-pre-line">
         {entry.body}
       </p>
       {entry.englishTranslation ? (

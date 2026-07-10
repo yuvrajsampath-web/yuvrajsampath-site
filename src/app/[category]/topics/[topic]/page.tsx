@@ -43,8 +43,8 @@ export default async function TopicPage({
                 <p className="text-xs tracking-[0.15em] uppercase text-muted tabular-nums">
                   {formatDate(w.publishedAt)}
                 </p>
-                <p className="mt-1.5 font-tamil-body text-lg group-hover:text-amber transition-colors whitespace-pre-line">
-                  {w.body.split("\n")[0]}
+                <p className="mt-1.5 font-tamil-body text-lg leading-relaxed group-hover:text-amber transition-colors whitespace-pre-line">
+                  {w.body}
                 </p>
               </Link>
             </li>

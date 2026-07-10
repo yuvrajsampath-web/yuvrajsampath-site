@@ -65,10 +65,10 @@ export function WritingForm({
     try {
       const payload = {
         category,
-        title,
         body,
         language,
         publishedAt,
+        ...(def.hasTitle && title ? { title } : {}),
         ...(topic ? { topic } : {}),
         ...(englishTranslation ? { englishTranslation } : {}),
         ...(coverImageUrl ? { coverImageUrl } : {}),
@@ -103,15 +103,17 @@ export function WritingForm({
         </select>
       </div>
 
-      <div>
-        <label className="block text-sm mb-1 text-muted">Title</label>
-        <input
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-md border border-line bg-surface px-3 py-2"
-        />
-      </div>
+      {def.hasTitle && (
+        <div>
+          <label className="block text-sm mb-1 text-muted">Title</label>
+          <input
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-md border border-line bg-surface px-3 py-2"
+          />
+        </div>
+      )}
 
       <div>
         <label className="block text-sm mb-1 text-muted">

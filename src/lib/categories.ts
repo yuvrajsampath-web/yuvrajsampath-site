@@ -11,6 +11,8 @@ export interface CategoryDef {
   format: ContentFormat;
   /** Whether entries in this category get a topic index in addition to the chronological archive. */
   topicIndexed: boolean;
+  /** Whether entries in this category have a title (daily entries don't — the text itself is the entry). */
+  hasTitle: boolean;
 }
 
 export const CATEGORIES: CategoryDef[] = [
@@ -22,6 +24,7 @@ export const CATEGORIES: CategoryDef[] = [
     birdMeaning: "a small mountain bird with a soft voice — the day's short piece",
     format: "plain",
     topicIndexed: true,
+    hasTitle: false,
   },
   {
     slug: "story",
@@ -31,6 +34,7 @@ export const CATEGORIES: CategoryDef[] = [
     birdMeaning: "a long-necked bird that lives by the water",
     format: "rich",
     topicIndexed: false,
+    hasTitle: true,
   },
   {
     slug: "poetry",
@@ -40,6 +44,7 @@ export const CATEGORIES: CategoryDef[] = [
     birdMeaning: "a small bird, beautiful enough for verse",
     format: "plain",
     topicIndexed: false,
+    hasTitle: true,
   },
   {
     slug: "essay",
@@ -49,6 +54,7 @@ export const CATEGORIES: CategoryDef[] = [
     birdMeaning: "the freshwater bird that signifies nobility",
     format: "rich",
     topicIndexed: false,
+    hasTitle: true,
   },
   {
     slug: "shortstory",
@@ -58,6 +64,7 @@ export const CATEGORIES: CategoryDef[] = [
     birdMeaning: "the small peacock — beauty and youth",
     format: "rich",
     topicIndexed: false,
+    hasTitle: true,
   },
 ];
 

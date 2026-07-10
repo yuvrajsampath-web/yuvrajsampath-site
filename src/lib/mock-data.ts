@@ -4,7 +4,6 @@ export const MOCK_WRITINGS: Writing[] = [
   {
     id: "daily-1",
     category: "daily",
-    title: "இன்றைய வரி",
     body: "மலை மூடும் மூடுபனி\nபாதை தெரியவில்லை\nநம்பிக்கை நடக்கிறது",
     englishTranslation: "The mist covers the hill\nthe path cannot be seen\nfaith walks on anyway",
     topic: "நம்பிக்கை",
@@ -15,7 +14,6 @@ export const MOCK_WRITINGS: Writing[] = [
   {
     id: "daily-2",
     category: "daily",
-    title: "மழை",
     body: "முதல் மழைத்துளி\nஉலர்ந்த மண் மேல் விழுந்தது\nமணம் எழுகிறது",
     englishTranslation: "First drop of rain\nfalls on the dry earth —\nthe scent rises",
     topic: "இயற்கை",

@@ -54,9 +54,15 @@ export default async function CategoryPage({
                   {formatDate(w.publishedAt)}
                   {w.topic ? ` · ${w.topic}` : ""}
                 </p>
-                <h2 className="mt-1.5 font-display text-xl group-hover:text-amber transition-colors">
-                  {w.title}
-                </h2>
+                {w.title ? (
+                  <h2 className="mt-1.5 font-display text-xl group-hover:text-amber transition-colors">
+                    {w.title}
+                  </h2>
+                ) : (
+                  <p className="mt-1.5 font-tamil-body text-lg leading-relaxed whitespace-pre-line group-hover:text-amber transition-colors">
+                    {w.body}
+                  </p>
+                )}
               </Link>
             </li>
           ))}

@@ -3,7 +3,8 @@ import type { CategorySlug } from "./categories";
 export interface Writing {
   id: string;
   category: CategorySlug;
-  title: string;
+  /** Absent for categories where hasTitle is false (e.g. daily — the text itself is the entry). */
+  title?: string;
   /** HTML (from the portal's rich editor) for "rich" categories, plain text (line breaks preserved) for "plain" ones. */
   body: string;
   englishTranslation?: string;

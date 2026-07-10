@@ -38,7 +38,9 @@ export default async function WritingPage({
           {formatDate(writing.publishedAt)}
           {writing.topic ? ` · ${writing.topic}` : ""}
         </p>
-        <h1 className="mt-2 font-display text-3xl sm:text-4xl text-balance">{writing.title}</h1>
+        {writing.title && (
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl text-balance">{writing.title}</h1>
+        )}
 
         <div className="mt-8">
           {def.format === "rich" ? (
