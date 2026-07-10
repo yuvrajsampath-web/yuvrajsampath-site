@@ -8,7 +8,7 @@ rules_version = '2';
 // After creating the author's Firebase Auth account, replace AUTHOR_UID below
 // with their actual UID (Authentication → Users → copy the "User UID" column).
 function isAuthor() {
-  return request.auth != null && request.auth.uid == "AUTHOR_UID";
+  return request.auth != null && request.auth.uid == "IBZR4nMr2ZWaeAaSnvs2cM8206D3";
 }
 
 service cloud.firestore {
