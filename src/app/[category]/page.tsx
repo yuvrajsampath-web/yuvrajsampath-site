@@ -2,12 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { CATEGORIES, CATEGORY_BY_SLUG, isCategorySlug } from "@/lib/categories";
+import { CATEGORY_BY_SLUG, isCategorySlug } from "@/lib/categories";
 import { getArchive } from "@/lib/data";
 
-export function generateStaticParams() {
-  return CATEGORIES.map((c) => ({ category: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 function formatDate(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {

@@ -2,6 +2,8 @@ import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getMedia } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 function formatDate(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {
     day: "numeric",
