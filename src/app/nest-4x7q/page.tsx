@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CATEGORIES, type CategorySlug } from "@/lib/categories";
+import { CATEGORIES, CATEGORY_BY_SLUG, type CategorySlug } from "@/lib/categories";
 import type { MediaEntry, Writing } from "@/lib/types";
 import { deleteMedia, deleteWriting, listMedia, listWritings } from "@/lib/portal-data";
 import { PORTAL_PATH } from "@/lib/portal-config";
@@ -96,7 +96,7 @@ export default function PortalDashboard() {
               <li key={w.id} className="flex items-center justify-between gap-4 py-3">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-wide text-muted">{w.publishedAt}</p>
-                  {w.title ? (
+                  {CATEGORY_BY_SLUG[w.category].hasTitle ? (
                     <p className="truncate font-tamil-body">{w.title}</p>
                   ) : (
                     <p className="font-tamil-body whitespace-pre-line">{w.body}</p>

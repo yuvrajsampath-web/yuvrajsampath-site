@@ -54,7 +54,7 @@ export default async function CategoryPage({
                   {formatDate(w.publishedAt)}
                   {w.topic ? ` · ${w.topic}` : ""}
                 </p>
-                {w.title ? (
+                {def.hasTitle ? (
                   <h2 className="mt-1.5 font-display text-xl group-hover:text-amber transition-colors">
                     {w.title}
                   </h2>
