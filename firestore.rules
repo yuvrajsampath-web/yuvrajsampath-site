@@ -4,15 +4,12 @@ rules_version = '2';
 // on the server (see src/lib/data.ts), which ignores these rules entirely.
 // So there is no need to open reads to anonymous visitors here: only the
 // authenticated author (portal) may read or write, full stop.
-//
-// After creating the author's Firebase Auth account, replace AUTHOR_UID below
-// with their actual UID (Authentication → Users → copy the "User UID" column).
-function isAuthor() {
-  return request.auth != null && request.auth.uid == "IBZR4nMr2ZWaeAaSnvs2cM8206D3";
-}
-
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAuthor() {
+      return request.auth != null && request.auth.uid == "IBZR4nMr2ZWaeAaSnvs2cM8206D3";
+    }
+
     match /writings/{docId} {
       allow read, write: if isAuthor();
     }
