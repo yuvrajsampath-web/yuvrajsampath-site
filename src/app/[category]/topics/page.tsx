@@ -1,9 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CATEGORY_BY_SLUG, isCategorySlug } from "@/lib/categories";
 import { getTopics } from "@/lib/data";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}): Promise<Metadata> {
+  const { category } = await params;
+  if (!isCategorySlug(category)) return {};
+  return { title: `Topics — ${CATEGORY_BY_SLUG[category].english}` };
+}
 
 export default async function TopicsIndexPage({
   params,

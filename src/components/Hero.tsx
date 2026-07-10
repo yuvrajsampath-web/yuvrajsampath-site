@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { BirdNav } from "./BirdNav";
+import { ThemeToggle } from "./ThemeToggle";
 
 const GRAIN =
   "data:image/svg+xml;base64," +
@@ -20,6 +22,13 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
         style={{ backgroundImage: `url(${GRAIN})` }}
       />
+
+      <div className="absolute right-6 top-6 flex items-center gap-4 text-sm text-[#fdf3e4]/80">
+        <Link href="/about" className="hover:text-[#fdf3e4] transition-colors">
+          About
+        </Link>
+        <ThemeToggle className="hover:text-[#fdf3e4] transition-colors" />
+      </div>
 
       <div className="relative mx-auto w-full max-w-3xl text-center">
         <p className="font-body text-xs sm:text-sm tracking-[0.25em] uppercase text-[#fdf3e4]/70">

@@ -1,13 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EntryList } from "@/components/EntryList";
+import { WritingHeatmap } from "@/components/WritingHeatmap";
 import { CATEGORY_BY_SLUG, isCategorySlug, monthKeyLabel } from "@/lib/categories";
 import { getArchive } from "@/lib/data";
 import type { Writing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string }>;
+}): Promise<Metadata> {
+  const { category } = await params;
+  if (!isCategorySlug(category)) return {};
+  const def = CATEGORY_BY_SLUG[category];
+  return {
+    title: `${def.tamil} — ${def.english}`,
+    description: def.birdMeaning,
+  };
+}
 
 function groupByMonth(entries: Writing[]) {
   const counts = new Map<string, number>();
@@ -47,6 +63,12 @@ export default async function CategoryPage({
           >
             Browse by topic →
           </Link>
+        )}
+
+        {def.paginated && (
+          <div className="mt-8">
+            <WritingHeatmap dates={entries.map((w) => w.publishedAt)} />
+          </div>
         )}
 
         {def.paginated ? (

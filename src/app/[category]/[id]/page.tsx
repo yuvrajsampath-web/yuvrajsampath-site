@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InnerHeader } from "@/components/InnerHeader";
@@ -5,8 +6,35 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { RichBody } from "@/components/RichBody";
 import { EntryList } from "@/components/EntryList";
 import { CATEGORY_BY_SLUG, isCategorySlug, isMonthKey, monthKeyLabel } from "@/lib/categories";
-import { getArchive, getWriting } from "@/lib/data";
+import { getArchive } from "@/lib/data";
 import { formatDate } from "@/lib/format";
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string; id: string }>;
+}): Promise<Metadata> {
+  const { category, id } = await params;
+  if (!isCategorySlug(category)) return {};
+  const def = CATEGORY_BY_SLUG[category];
+
+  if (def.paginated && isMonthKey(id)) {
+    return { title: `${monthKeyLabel(id)} — ${def.english}` };
+  }
+
+  const entries = await getArchive(category);
+  const writing = entries.find((w) => w.id === id);
+  if (!writing) return {};
+
+  const plainBody = def.format === "rich" ? stripHtml(writing.body) : writing.body.replace(/\n+/g, " ");
+  const title = def.hasTitle && writing.title ? writing.title : plainBody.slice(0, 60);
+  const description = plainBody.slice(0, 160);
+  return { title, description, openGraph: { description }, twitter: { description } };
+}
 
 export default async function CategoryIdPage({
   params,
@@ -36,8 +64,12 @@ export default async function CategoryIdPage({
     );
   }
 
-  const writing = await getWriting(id);
-  if (!writing || writing.category !== category) notFound();
+  const entries = await getArchive(category);
+  const index = entries.findIndex((w) => w.id === id);
+  if (index === -1) notFound();
+  const writing = entries[index];
+  const newer = index > 0 ? entries[index - 1] : null;
+  const older = index < entries.length - 1 ? entries[index + 1] : null;
 
   return (
     <div className="flex flex-col flex-1">
@@ -69,6 +101,31 @@ export default async function CategoryIdPage({
           <p className="mt-8 font-display italic text-muted whitespace-pre-line border-t border-line pt-8">
             {writing.englishTranslation}
           </p>
+        )}
+
+        {(older || newer) && (
+          <nav className="mt-12 flex items-center justify-between border-t border-line pt-6 text-sm">
+            {older ? (
+              <Link
+                href={`/${def.slug}/${older.id}`}
+                className="text-muted hover:text-amber transition-colors"
+              >
+                ← {formatDate(older.publishedAt)}
+              </Link>
+            ) : (
+              <span />
+            )}
+            {newer ? (
+              <Link
+                href={`/${def.slug}/${newer.id}`}
+                className="text-muted hover:text-amber transition-colors"
+              >
+                {formatDate(newer.publishedAt)} →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
         )}
       </main>
       <SiteFooter />

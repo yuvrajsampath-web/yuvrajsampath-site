@@ -16,5 +16,11 @@ service cloud.firestore {
     match /media/{docId} {
       allow read, write: if isAuthor();
     }
+    // Subscriber emails: written only via /api/subscribe (Admin SDK, bypasses
+    // these rules) so visitors can never read the list or spoof entries —
+    // this rule is a deliberate deny-all, not an oversight.
+    match /subscribers/{docId} {
+      allow read, write: if false;
+    }
   }
 }

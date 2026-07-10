@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getMedia } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Podcasts & Videos",
+  description: "Recorded podcasts and videos from Yuvraj Sampath.",
+};
 
 function formatDate(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {
