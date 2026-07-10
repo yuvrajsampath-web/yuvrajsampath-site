@@ -2,17 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InnerHeader } from "@/components/InnerHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { CATEGORY_BY_SLUG, isCategorySlug } from "@/lib/categories";
+import { EntryList } from "@/components/EntryList";
+import { CATEGORY_BY_SLUG, isCategorySlug, monthKeyLabel } from "@/lib/categories";
 import { getArchive } from "@/lib/data";
+import type { Writing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function formatDate(iso: string) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function groupByMonth(entries: Writing[]) {
+  const counts = new Map<string, number>();
+  for (const w of entries) {
+    const key = w.publishedAt.slice(0, 7); // YYYY-MM
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([monthKey, count]) => ({ monthKey, count }))
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
 }
 
 export default async function CategoryPage({
@@ -25,6 +30,7 @@ export default async function CategoryPage({
 
   const def = CATEGORY_BY_SLUG[category];
   const entries = await getArchive(category);
+  const months = def.paginated ? groupByMonth(entries) : [];
 
   return (
     <div className="flex flex-col flex-1">
@@ -43,30 +49,29 @@ export default async function CategoryPage({
           </Link>
         )}
 
-        <ol className="mt-10 space-y-8 border-t border-line pt-10">
-          {entries.length === 0 && (
-            <li className="text-muted">Nothing published here yet.</li>
-          )}
-          {entries.map((w) => (
-            <li key={w.id}>
-              <Link href={`/${def.slug}/${w.id}`} className="group block">
-                <p className="text-xs tracking-[0.15em] uppercase text-muted tabular-nums">
-                  {formatDate(w.publishedAt)}
-                  {w.topic ? ` · ${w.topic}` : ""}
-                </p>
-                {def.hasTitle ? (
-                  <h2 className="mt-1.5 font-display text-xl group-hover:text-amber transition-colors">
-                    {w.title}
-                  </h2>
-                ) : (
-                  <p className="mt-1.5 font-tamil-body text-lg leading-relaxed whitespace-pre-line group-hover:text-amber transition-colors">
-                    {w.body}
-                  </p>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ol>
+        {def.paginated ? (
+          months.length === 0 ? (
+            <p className="mt-10 border-t border-line pt-10 text-muted">Nothing published here yet.</p>
+          ) : (
+            <ul className="mt-10 border-t border-line divide-y divide-line">
+              {months.map((m) => (
+                <li key={m.monthKey} className="py-4">
+                  <Link
+                    href={`/${def.slug}/${m.monthKey}`}
+                    className="group flex items-baseline justify-between"
+                  >
+                    <span className="font-display text-lg group-hover:text-amber transition-colors">
+                      {monthKeyLabel(m.monthKey)}
+                    </span>
+                    <span className="text-sm text-muted tabular-nums">{m.count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : (
+          <EntryList def={def} entries={entries} />
+        )}
       </main>
       <SiteFooter />
     </div>

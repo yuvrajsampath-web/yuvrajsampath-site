@@ -13,6 +13,22 @@ export interface CategoryDef {
   topicIndexed: boolean;
   /** Whether entries in this category have a title (daily entries don't — the text itself is the entry). */
   hasTitle: boolean;
+  /** Whether the archive is split into year/month sub-pages instead of one long list (daily grows fastest). */
+  paginated: boolean;
+}
+
+const MONTH_KEY_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export function isMonthKey(value: string): boolean {
+  return MONTH_KEY_RE.test(value);
+}
+
+export function monthKeyLabel(monthKey: string): string {
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
 }
 
 export const CATEGORIES: CategoryDef[] = [
@@ -25,6 +41,7 @@ export const CATEGORIES: CategoryDef[] = [
     format: "plain",
     topicIndexed: true,
     hasTitle: false,
+    paginated: true,
   },
   {
     slug: "story",
@@ -35,6 +52,7 @@ export const CATEGORIES: CategoryDef[] = [
     format: "rich",
     topicIndexed: false,
     hasTitle: true,
+    paginated: false,
   },
   {
     slug: "poetry",
@@ -45,6 +63,7 @@ export const CATEGORIES: CategoryDef[] = [
     format: "plain",
     topicIndexed: false,
     hasTitle: true,
+    paginated: false,
   },
   {
     slug: "essay",
@@ -55,6 +74,7 @@ export const CATEGORIES: CategoryDef[] = [
     format: "rich",
     topicIndexed: false,
     hasTitle: true,
+    paginated: false,
   },
   {
     slug: "shortstory",
@@ -65,6 +85,7 @@ export const CATEGORIES: CategoryDef[] = [
     format: "rich",
     topicIndexed: false,
     hasTitle: true,
+    paginated: false,
   },
 ];
 
