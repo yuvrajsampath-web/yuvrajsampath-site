@@ -39,8 +39,26 @@ export function WritingForm({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
 
   const def = CATEGORY_BY_SLUG[category];
+
+  async function handleTranslate() {
+    if (!body.trim()) return;
+    setTranslating(true);
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(body)}&langpair=ta|en`
+      );
+      const data = await res.json();
+      const translated = data?.responseData?.translatedText;
+      if (translated) setEnglishTranslation(translated);
+    } catch (err) {
+      console.error("Translation request failed:", err);
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   async function handleFileChange() {
     const file = fileInput.current?.files?.[0];
@@ -127,6 +145,9 @@ export function WritingForm({
             rows={6}
             value={body}
             onChange={(e) => setBody(e.target.value)}
+            onBlur={() => {
+              if (def.slug === "daily" && !englishTranslation) handleTranslate();
+            }}
             className="w-full rounded-md border border-line bg-surface px-3 py-2 font-tamil-body text-lg"
           />
         )}
@@ -134,11 +155,22 @@ export function WritingForm({
 
       {def.slug === "daily" && (
         <div>
-          <label className="block text-sm mb-1 text-muted">English translation (optional)</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm text-muted">English translation (optional)</label>
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating || !body.trim()}
+              className="text-xs text-amber hover:opacity-75 transition-opacity disabled:opacity-40"
+            >
+              {translating ? "Translating…" : "Translate from Tamil"}
+            </button>
+          </div>
           <textarea
             rows={3}
             value={englishTranslation}
             onChange={(e) => setEnglishTranslation(e.target.value)}
+            placeholder="Auto-filled from the Tamil text — edit as needed"
             className="w-full rounded-md border border-line bg-surface px-3 py-2"
           />
         </div>
