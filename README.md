@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# யுவராஜ் சம்பத் — Yuvraj Sampath
 
-## Getting Started
+Bilingual author site: a daily short piece, stories, poetry, essays and short
+stories under five Tamil-named sections (see `src/lib/categories.ts`), plus
+podcasts/videos, publishable entirely from a hidden portal with no code or
+git required. Full architecture writeup: the artifact shared in chat — ask
+for a link if you need it again.
 
-First, run the development server:
+## Stack
+
+- **Next.js** (App Router, TypeScript, Tailwind v4) — the whole site, public pages and portal alike
+- **Netlify** — hosting + CI/CD, deploys automatically on push to `main`
+- **Firebase** — Firestore (data), Auth (portal login), Storage (cover images) — free Spark tier, no billing account needed
+- **GitHub Actions** — nightly Firestore backup (see `scripts/backup-firestore.mjs`)
+
+Public pages read Firestore server-side via the **Admin SDK** (`src/lib/data.ts`) —
+visitor browsers never load Firebase. Only the hidden portal talks to Firebase
+directly, client-side, from behind a login.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without any Firebase env vars set, the site runs on local mock data
+(`src/lib/mock-data.ts`) so every page is browsable immediately. The portal
+will show "Firebase isn't connected yet" until you complete the setup below.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setting up Firebase (one-time)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com).
+2. **Firestore**: create a database (production mode, any region close to your users).
+3. **Authentication**: enable the *Email/Password* sign-in method, then add one user — the author's email and a password. Copy that user's **UID** from the Users table.
+4. Paste the UID into `firestore.rules` and `storage.rules`, replacing `AUTHOR_UID`, then deploy the rules:
+   ```bash
+   npx firebase-tools deploy --only firestore:rules,storage:rules
+   ```
+5. **Storage**: enable it (for story cover images).
+6. **Client config**: Project settings → General → Your apps → add a Web app. Copy the values into `.env.local` (copy `.env.local.example` first) as the `NEXT_PUBLIC_FIREBASE_*` vars. Also set `NEXT_PUBLIC_AUTHOR_EMAIL` to the email from step 3.
+7. **Admin credentials**: Project settings → Service accounts → Generate new private key. Downloads a JSON file — copy `project_id`, `client_email`, and `private_key` into the `FIREBASE_*` (no `NEXT_PUBLIC_` prefix) vars in `.env.local`. Keep this file out of git.
 
-## Learn More
+Restart `npm run dev` after editing `.env.local`.
 
-To learn more about Next.js, take a look at the following resources:
+## Connecting the domain (Squarespace → Netlify)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Squarespace stays the registrar only — no site is built there.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push this repo to GitHub.
+2. In Netlify: **Add new site → Import from GitHub**, pick this repo. Build command `npm run build`, publish directory `.next` (Netlify's Next.js runtime handles the rest).
+3. Add the same `.env.local` variables under **Site settings → Environment variables**.
+4. **Domain settings → Add a domain** → `yuvrajsampath.com`. Netlify shows the DNS records to set.
+5. In Squarespace: **Domains → yuvrajsampath.com → DNS settings**, add the records Netlify gave you (usually an ALIAS/ANAME for the root and a CNAME for `www`).
 
-## Deploy on Vercel
+## The hidden portal
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+URL: `/nest-4x7q` (see `src/lib/portal-config.ts` — rename the folder to change it; the real security is Firebase Auth + the rules above, not the URL). It's excluded from search engines via `src/app/robots.ts`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sign in with the email/password from setup step 3. From there: add/edit/delete any of the five writing sections or a podcast/video — no code, no git, no deploy.
+
+## Nightly backups
+
+`.github/workflows/backup-firestore.yml` exports Firestore to `backups/<date>/*.json` and commits it, every night. Add these repo secrets (Settings → Secrets and variables → Actions) using the same admin values as `.env.local`: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`.
+
+## Not yet built
+
+- Bilingual EN/தமிழ் toggle for the wider profile pages (About, Ventures, etc.) — only the daily entry currently does Tamil-primary + English gloss.
+- `hreflang` tags / per-language sitemap.
+- Static profile pages (About, Journey, Ventures, Meendum Trust, Sustainability, Media, Gallery) from the original brief — this build covers the five writing sections, media, and the portal only.

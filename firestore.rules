@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Public pages never read Firestore directly — they go through the Admin SDK
+// on the server (see src/lib/data.ts), which ignores these rules entirely.
+// So there is no need to open reads to anonymous visitors here: only the
+// authenticated author (portal) may read or write, full stop.
+//
+// After creating the author's Firebase Auth account, replace AUTHOR_UID below
+// with their actual UID (Authentication → Users → copy the "User UID" column).
+function isAuthor() {
+  return request.auth != null && request.auth.uid == "AUTHOR_UID";
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /writings/{docId} {
+      allow read, write: if isAuthor();
+    }
+    match /media/{docId} {
+      allow read, write: if isAuthor();
+    }
+  }
+}

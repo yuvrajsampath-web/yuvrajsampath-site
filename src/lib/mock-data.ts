@@ -1,0 +1,81 @@
+import type { MediaEntry, Writing } from "./types";
+
+export const MOCK_WRITINGS: Writing[] = [
+  {
+    id: "daily-1",
+    category: "daily",
+    title: "இன்றைய வரி",
+    body: "மலை மூடும் மூடுபனி\nபாதை தெரியவில்லை\nநம்பிக்கை நடக்கிறது",
+    englishTranslation: "The mist covers the hill\nthe path cannot be seen\nfaith walks on anyway",
+    topic: "நம்பிக்கை",
+    language: "ta",
+    publishedAt: "2026-07-09",
+    createdAt: "2026-07-09T05:40:00.000Z",
+  },
+  {
+    id: "daily-2",
+    category: "daily",
+    title: "மழை",
+    body: "முதல் மழைத்துளி\nஉலர்ந்த மண் மேல் விழுந்தது\nமணம் எழுகிறது",
+    englishTranslation: "First drop of rain\nfalls on the dry earth —\nthe scent rises",
+    topic: "இயற்கை",
+    language: "ta",
+    publishedAt: "2026-07-08",
+    createdAt: "2026-07-08T05:35:00.000Z",
+  },
+  {
+    id: "story-1",
+    category: "story",
+    title: "The Weaver's Last Thread",
+    body: "<p>For forty years, Muthu had sat at the same loom by the window...</p><p>The cloth he wove was not for markets anymore, but he still rose before dawn, out of habit, out of love.</p>",
+    language: "en",
+    publishedAt: "2026-06-30",
+    createdAt: "2026-06-30T09:00:00.000Z",
+  },
+  {
+    id: "poetry-1",
+    category: "poetry",
+    title: "கடலோரம்",
+    body: "அலைகள் வருகின்றன\nஎதையும் எதிர்பார்க்காமல்\nமீண்டும் மீண்டும்",
+    language: "ta",
+    publishedAt: "2026-06-20",
+    createdAt: "2026-06-20T09:00:00.000Z",
+  },
+  {
+    id: "essay-1",
+    category: "essay",
+    title: "On Writing Slowly in a Fast Language",
+    body: "<p>There is a particular discipline to writing a haiku a day for years...</p>",
+    language: "en",
+    publishedAt: "2026-05-15",
+    createdAt: "2026-05-15T09:00:00.000Z",
+  },
+  {
+    id: "shortstory-1",
+    category: "shortstory",
+    title: "The Peacock's Question",
+    body: "<p>It was the small peacock, not the grand one, that asked the question no one else dared to.</p>",
+    language: "en",
+    publishedAt: "2026-04-01",
+    createdAt: "2026-04-01T09:00:00.000Z",
+  },
+];
+
+export const MOCK_MEDIA: MediaEntry[] = [
+  {
+    id: "media-1",
+    kind: "podcast",
+    title: "Writing Between Two Languages",
+    description: "A conversation on moving between Tamil and English on the page.",
+    url: "https://open.spotify.com/",
+    publishedAt: "2026-06-01",
+  },
+  {
+    id: "media-2",
+    kind: "video",
+    title: "An Evening of Readings",
+    description: "Recorded readings from recent short stories.",
+    url: "https://www.youtube.com/",
+    publishedAt: "2026-05-10",
+  },
+];

@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Cover images are written by the portal (author only) and read publicly by
+// the site's <Image> component, so unlike Firestore, reads are open here.
+function isAuthor() {
+  return request.auth != null && request.auth.uid == "AUTHOR_UID";
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /covers/{fileName} {
+      allow read: if true;
+      allow write: if isAuthor();
+    }
+  }
+}

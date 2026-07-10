@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --paper: #f6f3ec;
+  --ink: #201811;
+  --surface: #ffffff;
+  --muted: #6b5d4f;
+  --line: #e4ddd1;
+  --amber: #c1652a;
+  --amber-ink: #ffffff;
+  --amber-soft: #f3dcc3;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --sky-top: #f4c88b;
+  --sky-mid: #db7a3c;
+  --sky-deep: #2a1410;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #14100c;
+    --ink: #f3ece2;
+    --surface: #1d1712;
+    --muted: #b8a99a;
+    --line: #35291f;
+    --amber: #e0863c;
+    --amber-ink: #1a0f06;
+    --amber-soft: #3a2717;
   }
 }
 
+:root[data-theme="dark"] {
+  --paper: #14100c;
+  --ink: #f3ece2;
+  --surface: #1d1712;
+  --muted: #b8a99a;
+  --line: #35291f;
+  --amber: #e0863c;
+  --amber-ink: #1a0f06;
+  --amber-soft: #3a2717;
+}
+
+:root[data-theme="light"] {
+  --paper: #f6f3ec;
+  --ink: #201811;
+  --surface: #ffffff;
+  --muted: #6b5d4f;
+  --line: #e4ddd1;
+  --amber: #c1652a;
+  --amber-ink: #ffffff;
+  --amber-soft: #f3dcc3;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-amber-soft: var(--amber-soft);
+
+  --font-tamil-display: var(--font-noto-serif-tamil);
+  --font-tamil-body: var(--font-noto-sans-tamil);
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-work-sans);
+}
+
+* {
+  border-color: var(--line);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--amber-soft);
+  color: var(--ink);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
