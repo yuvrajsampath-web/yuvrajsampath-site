@@ -2,29 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function RevealPage() {
   const router = useRouter();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [hint, setHint] = useState(false);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.play().catch(() => {
-      const startOnGesture = () => {
-        audio.play().catch(() => {});
-      };
-      window.addEventListener("pointerdown", startOnGesture, { once: true });
-      window.addEventListener("keydown", startOnGesture, { once: true });
-      return () => {
-        window.removeEventListener("pointerdown", startOnGesture);
-        window.removeEventListener("keydown", startOnGesture);
-      };
-    });
-
     const t = setTimeout(() => setHint(true), 2200);
     return () => clearTimeout(t);
   }, []);
@@ -34,8 +18,6 @@ export default function RevealPage() {
       className="flex min-h-screen flex-col items-center justify-center px-6"
       style={{ backgroundColor: "#050403" }}
     >
-      <audio ref={audioRef} src="/audio/reveal-theme.mp3" loop />
-
       <button
         type="button"
         onClick={() => router.push("/")}
