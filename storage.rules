@@ -1,7 +1,7 @@
 rules_version = '2';
 
-// Cover images are written by the portal (author only) and read publicly by
-// the site's <Image> component, so unlike Firestore, reads are open here.
+// Cover images and story audio are written by the portal (author only) and
+// read publicly by the site, so unlike Firestore, reads are open here.
 service firebase.storage {
   match /b/{bucket}/o {
     function isAuthor() {
@@ -9,6 +9,11 @@ service firebase.storage {
     }
 
     match /covers/{fileName} {
+      allow read: if true;
+      allow write: if isAuthor();
+    }
+
+    match /audio/{fileName} {
       allow read: if true;
       allow write: if isAuthor();
     }

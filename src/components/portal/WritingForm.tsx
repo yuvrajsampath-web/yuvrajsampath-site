@@ -25,6 +25,7 @@ export function WritingForm({
 }) {
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
+  const audioInput = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategorySlug>(
     initial?.category ?? defaultCategory ?? "daily"
@@ -35,7 +36,9 @@ export function WritingForm({
   const [language, setLanguage] = useState<"ta" | "en">(initial?.language ?? "ta");
   const [publishedAt, setPublishedAt] = useState(initial?.publishedAt ?? today());
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.coverImageUrl ?? "");
+  const [audioUrl, setAudioUrl] = useState(initial?.audioUrl ?? "");
   const [uploading, setUploading] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +60,22 @@ export function WritingForm({
     }
   }
 
+  async function handleAudioChange() {
+    const file = audioInput.current?.files?.[0];
+    if (!file) return;
+    setUploadingAudio(true);
+    try {
+      const path = `audio/${Date.now()}-${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      setAudioUrl(await getDownloadURL(storageRef));
+    } catch {
+      setError("Audio upload failed. Try again.");
+    } finally {
+      setUploadingAudio(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -70,6 +89,7 @@ export function WritingForm({
         ...(def.hasTitle && title ? { title } : {}),
         ...(topic ? { topic } : {}),
         ...(coverImageUrl ? { coverImageUrl } : {}),
+        ...(def.hasAudio && audioUrl ? { audioUrl } : {}),
       };
       if (writingId) {
         await updateWriting(writingId, payload);
@@ -153,6 +173,17 @@ export function WritingForm({
         </div>
       )}
 
+      {def.hasAudio && (
+        <div>
+          <label className="block text-sm mb-1 text-muted">Your audio recording (optional)</label>
+          <input ref={audioInput} type="file" accept="audio/*" onChange={handleAudioChange} />
+          {uploadingAudio && <p className="text-sm text-muted mt-1">Uploading…</p>}
+          {audioUrl && !uploadingAudio && (
+            <audio controls src={audioUrl} className="mt-2 w-full max-w-sm" />
+          )}
+        </div>
+      )}
+
       <div className="flex gap-6">
         <div>
           <label className="block text-sm mb-1 text-muted">Language</label>
@@ -180,7 +211,7 @@ export function WritingForm({
 
       <button
         type="submit"
-        disabled={saving || uploading}
+        disabled={saving || uploading || uploadingAudio}
         className="rounded-md bg-amber text-amber-ink font-medium px-6 py-2 disabled:opacity-60"
       >
         {saving ? "Publishing…" : "Publish"}

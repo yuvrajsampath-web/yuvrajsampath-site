@@ -10,6 +10,7 @@ export interface Writing {
   topic?: string;
   language: "ta" | "en";
   coverImageUrl?: string;
+  audioUrl?: string;
   publishedAt: string; // ISO date
   createdAt: string; // ISO datetime
 }

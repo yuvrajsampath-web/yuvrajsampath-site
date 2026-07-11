@@ -15,6 +15,8 @@ export interface CategoryDef {
   hasTitle: boolean;
   /** Whether the archive is split into year/month sub-pages instead of one long list (daily grows fastest). */
   paginated: boolean;
+  /** Whether the portal offers an author audio-recording upload for this category. */
+  hasAudio: boolean;
 }
 
 const MONTH_KEY_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -42,6 +44,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: true,
     hasTitle: false,
     paginated: true,
+    hasAudio: false,
   },
   {
     slug: "story",
@@ -53,6 +56,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: false,
     hasTitle: true,
     paginated: false,
+    hasAudio: true,
   },
   {
     slug: "poetry",
@@ -64,6 +68,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: false,
     hasTitle: true,
     paginated: false,
+    hasAudio: false,
   },
   {
     slug: "essay",
@@ -75,6 +80,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: false,
     hasTitle: true,
     paginated: false,
+    hasAudio: false,
   },
   {
     slug: "shortstory",
@@ -86,6 +92,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: false,
     hasTitle: true,
     paginated: false,
+    hasAudio: false,
   },
 ];
 

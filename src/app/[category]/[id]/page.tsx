@@ -83,6 +83,19 @@ export default async function CategoryIdPage({
           <h1 className="mt-2 font-display text-3xl sm:text-4xl text-balance">{writing.title}</h1>
         )}
 
+        {writing.coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={writing.coverImageUrl}
+            alt=""
+            className="mt-8 w-full rounded-lg border border-line"
+          />
+        )}
+
+        {writing.audioUrl && (
+          <audio controls src={writing.audioUrl} className="mt-6 w-full" />
+        )}
+
         <div className="mt-8">
           {def.format === "rich" ? (
             <RichBody html={writing.body} />
