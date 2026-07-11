@@ -9,16 +9,14 @@ export interface Preview {
   publishedAt: string;
 }
 
-type NonDaily = Exclude<CategorySlug, "daily">;
-
 export function MoreWriting({
   previews,
   media,
 }: {
-  previews: Record<NonDaily, Preview[]>;
+  previews: Record<CategorySlug, Preview[]>;
   media?: Preview[];
 }) {
-  const categories = Object.keys(previews) as NonDaily[];
+  const categories = Object.keys(previews) as CategorySlug[];
   const latestMedia = media?.[0];
 
   return (

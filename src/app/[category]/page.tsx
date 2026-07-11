@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EntryList } from "@/components/EntryList";
-import { WritingHeatmap } from "@/components/WritingHeatmap";
 import { CATEGORY_BY_SLUG, isCategorySlug, monthKeyLabel } from "@/lib/categories";
 import { getArchive } from "@/lib/data";
+import { formatDate } from "@/lib/format";
 import type { Writing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +47,7 @@ export default async function CategoryPage({
   const def = CATEGORY_BY_SLUG[category];
   const entries = await getArchive(category);
   const months = def.paginated ? groupByMonth(entries) : [];
+  const today = def.paginated ? entries[0] : null;
 
   return (
     <div className="flex flex-col flex-1">
@@ -65,9 +66,16 @@ export default async function CategoryPage({
           </Link>
         )}
 
-        {def.paginated && (
-          <div className="mt-8">
-            <WritingHeatmap dates={entries.map((w) => w.publishedAt)} />
+        {today && (
+          <div className="mt-8 border-t border-line pt-8">
+            <p className="text-xs tracking-[0.2em] uppercase text-amber">Today&apos;s {def.tamil}</p>
+            <p className="mt-3 font-tamil-body text-lg leading-relaxed whitespace-pre-line text-balance">
+              {today.body}
+            </p>
+            <p className="mt-3 text-xs uppercase tracking-wide text-muted">
+              {formatDate(today.publishedAt)}
+              {today.topic ? ` · ${today.topic}` : ""}
+            </p>
           </div>
         )}
 

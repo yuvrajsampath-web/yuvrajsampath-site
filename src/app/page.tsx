@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const PREVIEW_CATEGORIES = ["story", "poetry", "essay", "shortstory"] as const;
+const PREVIEW_CATEGORIES = ["daily", "story", "poetry", "essay", "shortstory"] as const;
 const PREVIEW_COUNT = 5;
 
 export default async function HomePage() {

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import type { Writing } from "@/lib/types";
 import { formatDate } from "@/lib/format";
@@ -25,15 +24,6 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
         ) : (
           <p className="mt-5 text-muted">This entry will appear here once published.</p>
         )}
-
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            href="/daily"
-            className="rounded-full bg-amber px-5 py-2.5 text-sm font-medium text-amber-ink transition-opacity hover:opacity-90"
-          >
-            Browse the archive →
-          </Link>
-        </div>
       </div>
 
       <div className="relative mx-auto w-full max-w-xs md:max-w-sm">

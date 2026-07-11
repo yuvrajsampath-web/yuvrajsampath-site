@@ -25,7 +25,7 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-5 px-6 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-5 px-6 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <LogoMark size={32} />
           <span className="font-display text-base">Yuvraj Sampath</span>
@@ -33,7 +33,7 @@ export function TopNav() {
 
         <nav
           aria-label="Sections"
-          className="flex flex-1 gap-5 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="hidden flex-wrap gap-x-5 gap-y-2 sm:flex sm:flex-1"
         >
           {CATEGORIES.map((c) => (
             <NavLink key={c.slug} href={`/${c.slug}`} tamil={c.tamil} english={c.english} />
