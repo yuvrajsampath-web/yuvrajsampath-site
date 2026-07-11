@@ -2,7 +2,7 @@
 
 :root {
   --paper: #f6f3ec;
-  --ink: #201811;
+  --ink: #4a2c17;
   --surface: #ffffff;
   --muted: #6b5d4f;
   --line: #e4ddd1;
@@ -41,7 +41,7 @@
 
 :root[data-theme="light"] {
   --paper: #f6f3ec;
-  --ink: #201811;
+  --ink: #4a2c17;
   --surface: #ffffff;
   --muted: #6b5d4f;
   --line: #e4ddd1;

@@ -14,11 +14,11 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
 
         {entry ? (
           <>
-            <p className="mt-5 font-tamil-body text-2xl sm:text-3xl leading-relaxed whitespace-pre-line text-balance">
+            <p className="mt-5 font-tamil-body text-xl sm:text-2xl leading-relaxed whitespace-pre-line text-balance">
               {entry.body}
             </p>
             {entry.englishTranslation && (
-              <p className="mt-4 font-display italic text-base sm:text-lg text-muted whitespace-pre-line">
+              <p className="mt-4 font-display italic text-base text-muted whitespace-pre-line">
                 {entry.englishTranslation}
               </p>
             )}
@@ -30,10 +30,6 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
         ) : (
           <p className="mt-5 text-muted">This entry will appear here once published.</p>
         )}
-
-        <p className="mt-6 font-body text-xs tracking-[0.2em] uppercase text-muted">
-          Entrepreneur · Sustainability Advocate · Bilingual Author
-        </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
@@ -56,7 +52,7 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
             priority
             className="h-auto w-full"
           />
-          <div className="absolute inset-x-0 bottom-0 bg-black/70 px-4 py-2 text-center">
+          <div className="absolute inset-x-0 bottom-0 bg-[#2a1410]/80 px-4 py-2 text-center">
             <p className="text-[0.65rem] tracking-[0.15em] uppercase text-white">
               Entrepreneur · Advocate · Author
             </p>
