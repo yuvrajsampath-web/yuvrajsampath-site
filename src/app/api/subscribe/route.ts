@@ -26,6 +26,8 @@ export async function POST(request: Request) {
       email,
       token,
       subscribedAt: FieldValue.serverTimestamp(),
+      unopenedStreak: 0,
+      lastOpenedAt: null,
     });
   }
 

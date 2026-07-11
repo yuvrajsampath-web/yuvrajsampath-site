@@ -5,8 +5,17 @@
 // rather than createdAt on individual docs, specifically so a one-off bulk import
 // (like the chat-history backfill) never triggers a flood of emails: the cursor
 // only advances forward from whenever this script first ran.
+//
+// Each send is tagged with the subscriber's id; Resend's email.opened webhook
+// (src/app/api/webhooks/resend/route.ts) resets that subscriber's unopenedStreak
+// to 0 when they open one. A subscriber who reaches UNOPENED_LIMIT consecutive
+// unopened sends (not calendar days -- there's no digest on days nothing new is
+// published) is removed here before the next send, to stay under Resend's daily
+// email cap.
 import { cert, initializeApp } from "firebase-admin/app";
-import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { getFirestore, Timestamp, FieldValue } from "firebase-admin/firestore";
+
+const UNOPENED_LIMIT = 10;
 
 const {
   FIREBASE_PROJECT_ID,
@@ -59,6 +68,18 @@ function stripHtml(html) {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+async function removeStaleSubscribers() {
+  const stale = await db
+    .collection("subscribers")
+    .where("unopenedStreak", ">=", UNOPENED_LIMIT)
+    .get();
+  if (stale.empty) return;
+  for (const doc of stale.docs) await doc.ref.delete();
+  console.log(
+    `Removed ${stale.size} subscriber(s) who hadn't opened the last ${UNOPENED_LIMIT} emails.`
+  );
+}
+
 async function main() {
   const cursorRef = db.collection("meta").doc("notifications");
   const cursorDoc = await cursorRef.get();
@@ -68,6 +89,8 @@ async function main() {
     console.log("First run — cursor initialized to now, no email sent.");
     return;
   }
+
+  await removeStaleSubscribers();
 
   const lastNotifiedAt = cursorDoc.data().lastNotifiedAt;
 
@@ -139,11 +162,13 @@ async function main() {
             ? `New: ${CATEGORY_LABELS[entries[0].category]?.english ?? "writing"}`
             : `${entries.length} new from Yuvraj Sampath`,
         html,
+        tags: [{ name: "subscriber_id", value: sub.id }],
       }),
     });
 
     if (res.ok) {
       sent++;
+      await sub.ref.update({ unopenedStreak: FieldValue.increment(1) });
     } else {
       console.error(`Failed to send to ${email}: ${res.status} ${await res.text()}`);
     }

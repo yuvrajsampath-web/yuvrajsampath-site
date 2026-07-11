@@ -83,6 +83,21 @@ The first run just initializes a cursor and sends nothing (so it never floods
 subscribers with the entire back catalog) — from then on, only genuinely new
 entries trigger an email. Free tier: 3,000 emails/month, 100/day.
 
+### Auto-unsubscribing inactive subscribers
+
+To stay under the 100/day cap, subscribers who go 10 consecutive sends without
+opening an email are automatically removed (checked right before each send).
+This needs open tracking wired up, which is separate from the steps above:
+
+1. **Domain settings in Resend → enable Open Tracking** for `yuvrajsampath.com`.
+2. **Webhooks → Add Endpoint** → URL `https://yuvrajsampath.com/api/webhooks/resend`, subscribe to at least the `email.opened` event. Creating it shows a signing secret (`whsec_...`) — copy it.
+3. Add that as an environment variable in **Netlify** (not a GitHub secret — this one's read by the deployed site, not the Action): `RESEND_WEBHOOK_SECRET`.
+
+"10 in a row" means 10 consecutive *sent* digests, not calendar days — since a
+digest only goes out on days something new is published, this is the same
+thing in practice for a near-daily writer, and it avoids the edge cases of
+counting quiet weeks against someone.
+
 ## Not yet built
 
 - Bilingual EN/தமிழ் toggle for the wider profile pages (About, Ventures, etc.) — only the daily entry currently does Tamil-primary + English gloss.
