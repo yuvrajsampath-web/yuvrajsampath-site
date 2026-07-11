@@ -55,7 +55,7 @@ export default function PortalDashboard() {
           href={`/${PORTAL_PATH}/media/new`}
           className="rounded-full border border-line px-4 py-1.5 text-sm hover:border-amber hover:text-amber transition-colors"
         >
-          + Podcast / Video
+          + குயில்
         </Link>
       </div>
 
@@ -83,7 +83,7 @@ export default function PortalDashboard() {
               : "border-transparent text-muted hover:text-current")
           }
         >
-          Podcasts &amp; Videos
+          குயில்
         </button>
       </nav>
 
