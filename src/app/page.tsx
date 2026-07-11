@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { TopNav } from "@/components/TopNav";
 import { HomeHero } from "@/components/HomeHero";
-import { FeaturedDaily } from "@/components/FeaturedDaily";
 import { MoreWriting, type Preview } from "@/components/MoreWriting";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
@@ -47,8 +46,7 @@ export default async function HomePage() {
     <div className="flex flex-col flex-1">
       <TopNav />
       <main className="flex-1">
-        <HomeHero />
-        <FeaturedDaily entry={latestDaily} />
+        <HomeHero entry={latestDaily} />
         <MoreWriting previews={previews} />
       </main>
       <SiteFooter />

@@ -1,34 +1,46 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Writing } from "@/lib/types";
+import { formatDate } from "@/lib/format";
 
-export function HomeHero() {
+export function HomeHero({ entry }: { entry: Writing | null }) {
   return (
     <section className="mx-auto grid max-w-6xl gap-12 px-6 py-14 sm:py-20 md:grid-cols-2 md:items-center">
       <div>
         <p className="flex items-center gap-2 font-body text-xs tracking-[0.2em] uppercase text-amber">
           <span className="inline-block h-px w-6 bg-amber" />
+          Today&apos;s குறிஞ்சிட்டு
+        </p>
+
+        {entry ? (
+          <>
+            <p className="mt-5 font-tamil-body text-2xl sm:text-3xl leading-relaxed whitespace-pre-line text-balance">
+              {entry.body}
+            </p>
+            {entry.englishTranslation && (
+              <p className="mt-4 font-display italic text-base sm:text-lg text-muted whitespace-pre-line">
+                {entry.englishTranslation}
+              </p>
+            )}
+            <p className="mt-4 text-xs uppercase tracking-wide text-muted">
+              {formatDate(entry.publishedAt)}
+              {entry.topic ? ` · ${entry.topic}` : ""}
+            </p>
+          </>
+        ) : (
+          <p className="mt-5 text-muted">This entry will appear here once published.</p>
+        )}
+
+        <p className="mt-6 font-body text-xs tracking-[0.2em] uppercase text-muted">
           Entrepreneur · Sustainability Advocate · Bilingual Author
         </p>
-        <h1 className="mt-5 font-tamil-display text-4xl sm:text-5xl leading-tight text-balance">
-          நாள்தோறும் <span className="text-amber">ஒரு வரி.</span>
-        </h1>
-        <p className="mt-2 font-display italic text-lg text-muted">A line, every day.</p>
-        <p className="mt-5 max-w-prose text-muted">
-          Four decades in business and sustainability advocacy — and for the past two years, a
-          haiku every single day. Stories, essays and poetry, in Tamil and English.
-        </p>
+
         <div className="mt-7 flex flex-wrap gap-3">
-          <a
-            href="#today"
-            className="rounded-full bg-amber px-5 py-2.5 text-sm font-medium text-amber-ink transition-opacity hover:opacity-90"
-          >
-            See today&apos;s குறிஞ்சிட்டு ↓
-          </a>
           <Link
             href="/daily"
-            className="rounded-full border border-line px-5 py-2.5 text-sm transition-colors hover:border-amber hover:text-amber"
+            className="rounded-full bg-amber px-5 py-2.5 text-sm font-medium text-amber-ink transition-opacity hover:opacity-90"
           >
-            Browse the archive
+            Browse the archive →
           </Link>
         </div>
       </div>
