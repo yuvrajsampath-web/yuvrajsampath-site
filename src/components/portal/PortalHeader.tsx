@@ -11,12 +11,20 @@ export function PortalHeader() {
       <Link href={`/${PORTAL_PATH}`} className="font-display text-lg">
         Portal
       </Link>
-      <button
-        onClick={() => signOut(auth)}
-        className="text-sm text-muted hover:text-amber transition-colors"
-      >
-        Sign out
-      </button>
+      <div className="flex items-center gap-5">
+        <Link
+          href={`/${PORTAL_PATH}/architecture`}
+          className="text-sm text-muted hover:text-amber transition-colors"
+        >
+          Architecture
+        </Link>
+        <button
+          onClick={() => signOut(auth)}
+          className="text-sm text-muted hover:text-amber transition-colors"
+        >
+          Sign out
+        </button>
+      </div>
     </header>
   );
 }
