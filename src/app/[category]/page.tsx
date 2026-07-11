@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { InnerHeader } from "@/components/InnerHeader";
+import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EntryList } from "@/components/EntryList";
 import { WritingHeatmap } from "@/components/WritingHeatmap";
@@ -50,7 +50,7 @@ export default async function CategoryPage({
 
   return (
     <div className="flex flex-col flex-1">
-      <InnerHeader />
+      <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
         <p className="text-xs tracking-[0.2em] uppercase text-muted">{def.english}</p>
         <h1 className="mt-2 font-tamil-display text-4xl sm:text-5xl">{def.tamil}</h1>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { InnerHeader } from "@/components/InnerHeader";
+import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ function PlaceholderNote({ children }: { children: React.ReactNode }) {
 export default function AboutPage() {
   return (
     <div className="flex flex-col flex-1">
-      <InnerHeader />
+      <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
         <p className="text-xs tracking-[0.2em] uppercase text-muted">About</p>
         <h1 className="mt-2 font-display text-4xl sm:text-5xl text-balance">

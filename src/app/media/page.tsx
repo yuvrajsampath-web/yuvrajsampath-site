@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { InnerHeader } from "@/components/InnerHeader";
+import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getMedia } from "@/lib/data";
 
@@ -29,7 +29,7 @@ export default async function MediaPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      <InnerHeader />
+      <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
         <h1 className="font-display text-3xl sm:text-4xl">Podcasts &amp; Videos</h1>
 

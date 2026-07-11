@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { InnerHeader } from "@/components/InnerHeader";
+import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EntryList } from "@/components/EntryList";
 import { CATEGORY_BY_SLUG, isCategorySlug } from "@/lib/categories";
@@ -32,7 +32,7 @@ export default async function TopicPage({
 
   return (
     <div className="flex flex-col flex-1">
-      <InnerHeader />
+      <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
         <Link href={`/${def.slug}/topics`} className="text-sm text-muted hover:text-amber transition-colors">
           ← Topics

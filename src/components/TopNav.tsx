@@ -7,6 +7,15 @@ import { LogoMark } from "./LogoMark";
 import { SubscribeForm } from "./SubscribeForm";
 import { ThemeToggle } from "./ThemeToggle";
 
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </svg>
+  );
+}
+
 export function TopNav() {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
 
@@ -35,13 +44,17 @@ export function TopNav() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-4">
-          <Link
-            href="/about"
-            className="hidden text-sm text-muted transition-colors hover:text-amber sm:inline"
-          >
+          <Link href="/about" className="text-sm text-muted transition-colors hover:text-amber">
             About
           </Link>
-          <ThemeToggle className="hidden text-sm text-muted transition-colors hover:text-amber sm:inline" />
+          <Link
+            href="/search"
+            aria-label="Search"
+            className="text-muted transition-colors hover:text-amber"
+          >
+            <SearchIcon />
+          </Link>
+          <ThemeToggle />
 
           <div className="relative">
             <button

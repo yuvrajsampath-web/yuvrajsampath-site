@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { InnerHeader } from "@/components/InnerHeader";
+import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SearchClient, type SearchItem } from "@/components/SearchClient";
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
@@ -29,7 +29,7 @@ export default async function SearchPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      <InnerHeader />
+      <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
         <h1 className="font-display text-3xl sm:text-4xl">Search</h1>
         <div className="mt-8">
