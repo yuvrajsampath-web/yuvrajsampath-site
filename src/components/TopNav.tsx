@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
+import { LogoMark } from "./LogoMark";
 import { SubscribeForm } from "./SubscribeForm";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -13,10 +13,8 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-5 px-6 py-3">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-line bg-white">
-            <Image src="/logo.png" alt="Yuvraj Sampath" width={32} height={32} className="h-full w-full object-cover" />
-          </span>
+        <Link href="/" className="flex shrink-0 items-center gap-3">
+          <LogoMark size={32} />
           <span className="font-display text-base">Yuvraj Sampath</span>
         </Link>
 
