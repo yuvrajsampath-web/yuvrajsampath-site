@@ -4,7 +4,7 @@ import { HomeHero } from "@/components/HomeHero";
 import { MoreWriting, type Preview } from "@/components/MoreWriting";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
-import { getArchive, getLatestDaily } from "@/lib/data";
+import { getArchive, getLatestDaily, getMedia } from "@/lib/data";
 import { stripHtml } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -24,8 +24,9 @@ const PREVIEW_CATEGORIES = ["story", "poetry", "essay", "shortstory"] as const;
 const PREVIEW_COUNT = 5;
 
 export default async function HomePage() {
-  const [latestDaily, ...archives] = await Promise.all([
+  const [latestDaily, mediaEntries, ...archives] = await Promise.all([
     getLatestDaily(),
+    getMedia(),
     ...PREVIEW_CATEGORIES.map((c) => getArchive(c)),
   ]);
 
@@ -42,12 +43,19 @@ export default async function HomePage() {
     })
   ) as Record<(typeof PREVIEW_CATEGORIES)[number], Preview[]>;
 
+  const media: Preview[] = mediaEntries.slice(0, PREVIEW_COUNT).map((m) => ({
+    id: m.id,
+    title: m.title,
+    snippet: m.description ?? "",
+    publishedAt: m.publishedAt,
+  }));
+
   return (
     <div className="flex flex-col flex-1">
       <TopNav />
       <main className="flex-1">
         <HomeHero entry={latestDaily} />
-        <MoreWriting previews={previews} />
+        <MoreWriting previews={previews} media={media} />
       </main>
       <SiteFooter />
     </div>

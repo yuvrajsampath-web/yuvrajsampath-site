@@ -11,9 +11,6 @@ export function SiteFooter() {
         <Link href="/about" className="hover:text-amber transition-colors">
           About
         </Link>
-        <Link href="/media" className="hover:text-amber transition-colors">
-          Podcasts &amp; Videos
-        </Link>
         <Link href="/daily" className="hover:text-amber transition-colors">
           Archive
         </Link>
