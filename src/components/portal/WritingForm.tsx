@@ -26,6 +26,7 @@ export function WritingForm({
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
   const audioInput = useRef<HTMLInputElement>(null);
+  const docInput = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategorySlug>(
     initial?.category ?? defaultCategory ?? "daily"
@@ -39,6 +40,7 @@ export function WritingForm({
   const [audioUrl, setAudioUrl] = useState(initial?.audioUrl ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [importingDoc, setImportingDoc] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,6 +75,58 @@ export function WritingForm({
       setError("Audio upload failed. Try again.");
     } finally {
       setUploadingAudio(false);
+    }
+  }
+
+  async function extractDocx(file: File) {
+    const mammoth = await import("mammoth");
+    const arrayBuffer = await file.arrayBuffer();
+    const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
+    return html;
+  }
+
+  async function extractPdf(file: File) {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.min.mjs",
+      import.meta.url
+    ).toString();
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    const paragraphs: string[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const text = content.items
+        .map((item) => ("str" in item ? item.str : ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (text) paragraphs.push(text);
+    }
+    return paragraphs.map((p) => `<p>${p}</p>`).join("");
+  }
+
+  async function handleDocImport() {
+    const file = docInput.current?.files?.[0];
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    setImportingDoc(true);
+    setError(null);
+    try {
+      if (name.endsWith(".docx")) {
+        setBody(await extractDocx(file));
+      } else if (name.endsWith(".pdf")) {
+        setBody(await extractPdf(file));
+      } else {
+        setError("Please choose a .docx or .pdf file.");
+      }
+    } catch {
+      setError("Couldn't read that file. Try pasting the text instead.");
+    } finally {
+      setImportingDoc(false);
+      if (docInput.current) docInput.current.value = "";
     }
   }
 
@@ -130,6 +184,25 @@ export function WritingForm({
             onChange={(e) => setTitle(e.target.value)}
             className="w-full rounded-md border border-line bg-surface px-3 py-2"
           />
+        </div>
+      )}
+
+      {def.format === "rich" && (
+        <div>
+          <label className="block text-sm mb-1 text-muted">
+            Import from a file (optional)
+          </label>
+          <input
+            ref={docInput}
+            type="file"
+            accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={handleDocImport}
+          />
+          <p className="text-xs text-muted mt-1">
+            .docx or .pdf — replaces the text below with the file&apos;s contents. You can
+            also just paste text directly into the box below.
+          </p>
+          {importingDoc && <p className="text-sm text-muted mt-1">Reading file…</p>}
         </div>
       )}
 
@@ -211,7 +284,7 @@ export function WritingForm({
 
       <button
         type="submit"
-        disabled={saving || uploading || uploadingAudio}
+        disabled={saving || uploading || uploadingAudio || importingDoc}
         className="rounded-md bg-amber text-amber-ink font-medium px-6 py-2 disabled:opacity-60"
       >
         {saving ? "Publishing…" : "Publish"}

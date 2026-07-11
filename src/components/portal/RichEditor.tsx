@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -22,6 +23,15 @@ export function RichEditor({
       },
     },
   });
+
+  // Lets external updates (e.g. an imported .docx/.pdf) push content into the
+  // editor; skipped when the change originated from typing in the editor itself.
+  useEffect(() => {
+    if (!editor) return;
+    if (value !== editor.getHTML()) {
+      editor.commands.setContent(value, { emitUpdate: false });
+    }
+  }, [value, editor]);
 
   if (!editor) return null;
 
