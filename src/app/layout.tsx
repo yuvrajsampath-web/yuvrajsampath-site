@@ -60,6 +60,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${fraunces.variable} ${workSans.variable} ${notoSerifTamil.variable} ${notoSansTamil.variable} h-full antialiased`}
+      // The inline theme script below intentionally sets data-theme on this
+      // element before React hydrates, to avoid a flash of the wrong theme.
+      suppressHydrationWarning
     >
       <head>
         <script
