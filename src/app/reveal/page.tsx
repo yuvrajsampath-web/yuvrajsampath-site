@@ -1,26 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const FADE_MS = 700;
+
 export default function RevealPage() {
-  const router = useRouter();
   const [hint, setHint] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setHint(true), 2200);
     return () => clearTimeout(t);
   }, []);
 
+  function handleContinue() {
+    if (leaving) return;
+    setLeaving(true);
+    setTimeout(() => {
+      window.location.href = "/";
+    }, FADE_MS);
+  }
+
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center px-6"
-      style={{ backgroundColor: "#050403" }}
+      className="flex min-h-screen flex-col items-center justify-center px-6 transition-opacity ease-out"
+      style={{
+        backgroundColor: "#050403",
+        opacity: leaving ? 0 : 1,
+        transitionDuration: `${FADE_MS}ms`,
+      }}
     >
       <button
         type="button"
-        onClick={() => router.push("/")}
+        onClick={handleContinue}
         aria-label="Continue to yuvrajsampath.com"
         className="group relative w-full max-w-md cursor-pointer"
       >

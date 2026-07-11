@@ -6,6 +6,6 @@
  * Real access control is Firebase Auth + Firestore security rules, not this —
  * treat the obscure URL as a courtesy, not the lock.
  */
-export const PORTAL_PATH = "nest-4x7q";
+export const PORTAL_PATH = "tirupur";
 
 export const AUTHOR_EMAIL = process.env.NEXT_PUBLIC_AUTHOR_EMAIL ?? "";

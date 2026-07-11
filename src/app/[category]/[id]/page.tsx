@@ -88,7 +88,7 @@ export default async function CategoryIdPage({
           <img
             src={writing.coverImageUrl}
             alt=""
-            className="mt-8 w-full rounded-lg border border-line"
+            className="mt-8 w-1/2 mx-auto rounded-lg border border-line"
           />
         )}
 

@@ -55,7 +55,7 @@ Squarespace stays the registrar only — no site is built there.
 
 ## The hidden portal
 
-URL: `/nest-4x7q` (see `src/lib/portal-config.ts` — rename the folder to change it; the real security is Firebase Auth + the rules above, not the URL). It's excluded from search engines via `src/app/robots.ts`.
+URL: `/tirupur` (see `src/lib/portal-config.ts` — rename the folder to change it; the real security is Firebase Auth + the rules above, not the URL). It's excluded from search engines via `src/app/robots.ts`.
 
 Sign in with the email/password from setup step 3. From there: add/edit/delete any of the five writing sections or a podcast/video — no code, no git, no deploy.
 
