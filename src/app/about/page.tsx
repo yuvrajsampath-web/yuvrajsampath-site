@@ -27,6 +27,13 @@ export default function AboutPage() {
         </h1>
         <p className="mt-1 font-tamil-body text-lg text-muted">யுவராஜ் சம்பத்</p>
 
+        <a
+          href="mailto:yuvrajsampath@gmail.com"
+          className="mt-6 inline-block rounded-full border border-line px-4 py-2 text-sm transition-colors hover:border-amber hover:text-amber"
+        >
+          Contact →
+        </a>
+
         <div className="mt-10 w-full max-w-xs overflow-hidden rounded-md border border-line">
           <Image
             src="/author.jpg"

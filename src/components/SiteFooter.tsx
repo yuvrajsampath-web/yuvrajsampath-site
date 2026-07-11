@@ -20,6 +20,9 @@ export function SiteFooter({ credit = false }: { credit?: boolean }) {
         <Link href="/search" className="hover:text-amber transition-colors">
           Search
         </Link>
+        <a href="mailto:yuvrajsampath@gmail.com" className="hover:text-amber transition-colors">
+          Contact
+        </a>
       </nav>
       <p className="mt-6 font-tamil-body">யுவராஜ் சம்பத் · Yuvraj Sampath</p>
       {credit && <p className="mt-2 text-xs text-muted/70">Designed by Senthil Arasu</p>}
