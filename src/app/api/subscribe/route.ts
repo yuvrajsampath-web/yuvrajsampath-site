@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -20,7 +21,12 @@ export async function POST(request: Request) {
   const db = getAdminDb();
   const existing = await db.collection("subscribers").where("email", "==", email).limit(1).get();
   if (existing.empty) {
-    await db.collection("subscribers").add({ email, subscribedAt: FieldValue.serverTimestamp() });
+    const token = randomBytes(16).toString("hex");
+    await db.collection("subscribers").add({
+      email,
+      token,
+      subscribedAt: FieldValue.serverTimestamp(),
+    });
   }
 
   return Response.json({ ok: true });

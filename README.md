@@ -63,6 +63,26 @@ Sign in with the email/password from setup step 3. From there: add/edit/delete a
 
 `.github/workflows/backup-firestore.yml` exports Firestore to `backups/<date>/*.json` and commits it, every night. Add these repo secrets (Settings → Secrets and variables → Actions) using the same admin values as `.env.local`: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`.
 
+## Email notifications (Resend)
+
+Visitors can subscribe from the site footer (stored in Firestore's `subscribers`
+collection — write-only from the client's perspective; only `/api/subscribe` and
+`/api/unsubscribe`, both Admin SDK, can touch it). `.github/workflows/notify-subscribers.yml`
+runs daily, checks for anything published since its last run, and emails the
+subscriber list via [Resend](https://resend.com) — no new hosting, same pattern
+as the nightly backup.
+
+Setup:
+
+1. Create a Resend account, then **Domains → Add domain** → `yuvrajsampath.com`. It shows DNS records (SPF/DKIM) — add them in Squarespace's DNS settings the same way as the Netlify records.
+2. Once verified, **API Keys → Create API Key**.
+3. Decide a from-address on the verified domain, e.g. `updates@yuvrajsampath.com`.
+4. Add two repo secrets (Settings → Secrets and variables → Actions): `RESEND_API_KEY` and `RESEND_FROM_EMAIL`.
+
+The first run just initializes a cursor and sends nothing (so it never floods
+subscribers with the entire back catalog) — from then on, only genuinely new
+entries trigger an email. Free tier: 3,000 emails/month, 100/day.
+
 ## Not yet built
 
 - Bilingual EN/தமிழ் toggle for the wider profile pages (About, Ventures, etc.) — only the daily entry currently does Tamil-primary + English gloss.

@@ -22,5 +22,10 @@ service cloud.firestore {
     match /subscribers/{docId} {
       allow read, write: if false;
     }
+    // Notification cursor, read/written only by scripts/notify-subscribers.mjs
+    // via the Admin SDK.
+    match /meta/{docId} {
+      allow read, write: if false;
+    }
   }
 }
