@@ -14,6 +14,31 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * Browsers/OSes often tag audio-only .mp4/.m4a files (common from WhatsApp
+ * and voice recorder exports) as "video/mp4", which makes <audio> refuse to
+ * play them. Force a real audio content type from the extension instead of
+ * trusting file.type.
+ */
+function audioContentType(fileName: string, fallbackType: string): string {
+  const ext = fileName.toLowerCase().split(".").pop() ?? "";
+  const byExt: Record<string, string> = {
+    mp3: "audio/mpeg",
+    mp4: "audio/mp4",
+    m4a: "audio/mp4",
+    wav: "audio/wav",
+    ogg: "audio/ogg",
+    oga: "audio/ogg",
+    webm: "audio/webm",
+    aac: "audio/aac",
+    flac: "audio/flac",
+    amr: "audio/amr",
+  };
+  if (byExt[ext]) return byExt[ext];
+  if (fallbackType.startsWith("audio/")) return fallbackType;
+  return "audio/mpeg";
+}
+
 export function WritingForm({
   initial,
   writingId,
@@ -69,7 +94,9 @@ export function WritingForm({
     try {
       const path = `audio/${Date.now()}-${file.name}`;
       const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, file, {
+        contentType: audioContentType(file.name, file.type),
+      });
       setAudioUrl(await getDownloadURL(storageRef));
     } catch {
       setError("Audio upload failed. Try again.");
