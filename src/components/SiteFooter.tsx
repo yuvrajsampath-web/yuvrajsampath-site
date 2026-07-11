@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SubscribeForm } from "./SubscribeForm";
 
-export function SiteFooter({ credit = false }: { credit?: boolean }) {
+export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-line px-6 py-10 text-center text-sm text-muted">
       <p className="mb-3">Get new writing by email</p>
@@ -25,7 +25,7 @@ export function SiteFooter({ credit = false }: { credit?: boolean }) {
         </a>
       </nav>
       <p className="mt-6 font-tamil-body">யுவராஜ் சம்பத் · Yuvraj Sampath</p>
-      {credit && <p className="mt-2 text-xs text-muted/70">Designed by Senthil Arasu</p>}
+      <p className="mt-2 text-xs text-muted/70">Designed by Senthy</p>
     </footer>
   );
 }

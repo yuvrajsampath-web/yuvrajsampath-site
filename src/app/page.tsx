@@ -57,7 +57,7 @@ export default async function HomePage() {
         <HomeHero entry={latestDaily} />
         <MoreWriting previews={previews} media={media} />
       </main>
-      <SiteFooter credit />
+      <SiteFooter />
     </div>
   );
 }
