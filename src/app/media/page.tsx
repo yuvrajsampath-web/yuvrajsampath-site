@@ -31,7 +31,11 @@ export default async function MediaPage() {
     <div className="flex flex-col flex-1">
       <TopNav />
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-14">
-        <h1 className="font-display text-3xl sm:text-4xl">Podcasts &amp; Videos</h1>
+        <p className="text-xs tracking-[0.2em] uppercase text-muted">Media</p>
+        <h1 className="mt-2 font-tamil-display text-4xl sm:text-5xl">குயில்</h1>
+        <p className="mt-3 text-muted max-w-prose">
+          the koel — the bird of the melodious call — podcasts and videos
+        </p>
 
         <ol className="mt-10 space-y-10 border-t border-line pt-10">
           {entries.length === 0 && <li className="text-muted">Nothing published here yet.</li>}

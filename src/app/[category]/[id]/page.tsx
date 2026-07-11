@@ -93,12 +93,6 @@ export default async function CategoryIdPage({
           )}
         </div>
 
-        {writing.englishTranslation && (
-          <p className="mt-8 font-display italic text-muted whitespace-pre-line border-t border-line pt-8">
-            {writing.englishTranslation}
-          </p>
-        )}
-
         {(older || newer) && (
           <nav className="mt-12 flex items-center justify-between border-t border-line pt-6 text-sm">
             {older ? (

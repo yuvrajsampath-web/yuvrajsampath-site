@@ -32,33 +32,14 @@ export function WritingForm({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [body, setBody] = useState(initial?.body ?? "");
   const [topic, setTopic] = useState(initial?.topic ?? "");
-  const [englishTranslation, setEnglishTranslation] = useState(initial?.englishTranslation ?? "");
   const [language, setLanguage] = useState<"ta" | "en">(initial?.language ?? "ta");
   const [publishedAt, setPublishedAt] = useState(initial?.publishedAt ?? today());
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.coverImageUrl ?? "");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [translating, setTranslating] = useState(false);
 
   const def = CATEGORY_BY_SLUG[category];
-
-  async function handleTranslate() {
-    if (!body.trim()) return;
-    setTranslating(true);
-    try {
-      const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(body)}&langpair=ta|en`
-      );
-      const data = await res.json();
-      const translated = data?.responseData?.translatedText;
-      if (translated) setEnglishTranslation(translated);
-    } catch (err) {
-      console.error("Translation request failed:", err);
-    } finally {
-      setTranslating(false);
-    }
-  }
 
   async function handleFileChange() {
     const file = fileInput.current?.files?.[0];
@@ -88,7 +69,6 @@ export function WritingForm({
         publishedAt,
         ...(def.hasTitle && title ? { title } : {}),
         ...(topic ? { topic } : {}),
-        ...(englishTranslation ? { englishTranslation } : {}),
         ...(coverImageUrl ? { coverImageUrl } : {}),
       };
       if (writingId) {
@@ -145,36 +125,10 @@ export function WritingForm({
             rows={6}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            onBlur={() => {
-              if (def.slug === "daily" && !englishTranslation) handleTranslate();
-            }}
             className="w-full rounded-md border border-line bg-surface px-3 py-2 font-tamil-body text-lg"
           />
         )}
       </div>
-
-      {def.slug === "daily" && (
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-sm text-muted">English translation (optional)</label>
-            <button
-              type="button"
-              onClick={handleTranslate}
-              disabled={translating || !body.trim()}
-              className="text-xs text-amber hover:opacity-75 transition-opacity disabled:opacity-40"
-            >
-              {translating ? "Translating…" : "Translate from Tamil"}
-            </button>
-          </div>
-          <textarea
-            rows={3}
-            value={englishTranslation}
-            onChange={(e) => setEnglishTranslation(e.target.value)}
-            placeholder="Auto-filled from the Tamil text — edit as needed"
-            className="w-full rounded-md border border-line bg-surface px-3 py-2"
-          />
-        </div>
-      )}
 
       {def.topicIndexed && (
         <div>

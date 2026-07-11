@@ -17,11 +17,6 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
             <p className="mt-5 font-tamil-body text-xl sm:text-2xl leading-relaxed whitespace-pre-line text-balance">
               {entry.body}
             </p>
-            {entry.englishTranslation && (
-              <p className="mt-4 font-display italic text-base text-muted whitespace-pre-line">
-                {entry.englishTranslation}
-              </p>
-            )}
             <p className="mt-4 text-xs uppercase tracking-wide text-muted">
               {formatDate(entry.publishedAt)}
               {entry.topic ? ` · ${entry.topic}` : ""}

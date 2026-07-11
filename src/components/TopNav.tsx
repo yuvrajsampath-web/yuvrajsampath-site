@@ -16,6 +16,19 @@ function SearchIcon() {
   );
 }
 
+function NavLink({ href, tamil, english }: { href: string; tamil: string; english: string }) {
+  return (
+    <Link href={href} className="group flex shrink-0 flex-col items-center leading-tight">
+      <span className="font-tamil-body text-sm transition-colors group-hover:text-amber">
+        {tamil}
+      </span>
+      <span className="text-[0.6rem] tracking-[0.12em] uppercase text-muted transition-colors group-hover:text-amber/80">
+        {english}
+      </span>
+    </Link>
+  );
+}
+
 export function TopNav() {
   const [subscribeOpen, setSubscribeOpen] = useState(false);
 
@@ -32,15 +45,9 @@ export function TopNav() {
           className="flex flex-1 gap-5 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {CATEGORIES.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/${c.slug}`}
-              title={c.english}
-              className="shrink-0 font-tamil-body text-sm text-muted transition-colors hover:text-amber"
-            >
-              {c.tamil}
-            </Link>
+            <NavLink key={c.slug} href={`/${c.slug}`} tamil={c.tamil} english={c.english} />
           ))}
+          <NavLink href="/media" tamil="குயில்" english="Media" />
         </nav>
 
         <div className="flex shrink-0 items-center gap-4">
