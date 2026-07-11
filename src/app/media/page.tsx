@@ -6,7 +6,7 @@ import { getMedia } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Podcasts & Videos",
+  title: "குயில் — Media",
   description: "Recorded podcasts and videos from Yuvraj Sampath.",
 };
 
