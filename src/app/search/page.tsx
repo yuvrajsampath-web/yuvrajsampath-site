@@ -4,16 +4,13 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SearchClient, type SearchItem } from "@/components/SearchClient";
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
 import { getAllWritings } from "@/lib/data";
+import { stripHtml } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Search",
 };
-
-function stripHtml(html: string) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
 
 export default async function SearchPage() {
   const writings = await getAllWritings();

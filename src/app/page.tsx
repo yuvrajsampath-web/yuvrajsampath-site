@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { Hero } from "@/components/Hero";
-import { DailyFeature } from "@/components/DailyFeature";
+import { TopNav } from "@/components/TopNav";
+import { HomeHero } from "@/components/HomeHero";
+import { FeaturedDaily } from "@/components/FeaturedDaily";
+import { MoreWriting, type Preview } from "@/components/MoreWriting";
 import { SiteFooter } from "@/components/SiteFooter";
-import { getLatestDaily } from "@/lib/data";
+import { CATEGORY_BY_SLUG } from "@/lib/categories";
+import { getArchive, getLatestDaily } from "@/lib/data";
+import { stripHtml } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -17,14 +21,37 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const PREVIEW_CATEGORIES = ["story", "poetry", "essay", "shortstory"] as const;
+const PREVIEW_COUNT = 5;
+
 export default async function HomePage() {
-  const latest = await getLatestDaily();
+  const [latestDaily, ...archives] = await Promise.all([
+    getLatestDaily(),
+    ...PREVIEW_CATEGORIES.map((c) => getArchive(c)),
+  ]);
+
+  const previews = Object.fromEntries(
+    PREVIEW_CATEGORIES.map((category, i) => {
+      const def = CATEGORY_BY_SLUG[category];
+      const list: Preview[] = archives[i].slice(0, PREVIEW_COUNT).map((w) => ({
+        id: w.id,
+        title: def.hasTitle && w.title ? w.title : "",
+        snippet: (def.format === "rich" ? stripHtml(w.body) : w.body).slice(0, 100),
+        publishedAt: w.publishedAt,
+      }));
+      return [category, list];
+    })
+  ) as Record<(typeof PREVIEW_CATEGORIES)[number], Preview[]>;
 
   return (
-    <main className="flex flex-col flex-1">
-      <Hero />
-      <DailyFeature entry={latest} />
+    <div className="flex flex-col flex-1">
+      <TopNav />
+      <main className="flex-1">
+        <HomeHero />
+        <FeaturedDaily entry={latestDaily} />
+        <MoreWriting previews={previews} />
+      </main>
       <SiteFooter />
-    </main>
+    </div>
   );
 }

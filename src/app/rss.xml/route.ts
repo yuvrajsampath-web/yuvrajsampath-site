@@ -1,5 +1,6 @@
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
 import { getRecentWritings } from "@/lib/data";
+import { stripHtml } from "@/lib/format";
 
 const SITE_URL = "https://yuvrajsampath.com";
 
@@ -10,10 +11,6 @@ function escapeXml(s: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
-}
-
-function stripHtml(html: string) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 export async function GET() {

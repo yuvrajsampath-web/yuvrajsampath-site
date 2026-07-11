@@ -7,11 +7,7 @@ import { RichBody } from "@/components/RichBody";
 import { EntryList } from "@/components/EntryList";
 import { CATEGORY_BY_SLUG, isCategorySlug, isMonthKey, monthKeyLabel } from "@/lib/categories";
 import { getArchive } from "@/lib/data";
-import { formatDate } from "@/lib/format";
-
-function stripHtml(html: string) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
+import { formatDate, stripHtml } from "@/lib/format";
 
 export async function generateMetadata({
   params,
