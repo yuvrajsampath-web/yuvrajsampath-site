@@ -158,10 +158,9 @@ export default function ArchitecturePage() {
               <tbody>
                 {[
                   ["daily", "குறிஞ்சிட்டு", "plain", "no", "yes", "no"],
-                  ["story", "தூவானை", "rich", "yes", "no", "yes"],
                   ["poetry", "முருகு சிட்டு", "plain", "yes", "no", "no"],
                   ["essay", "அன்னம்", "rich", "yes", "no", "no"],
-                  ["shortstory", "சிறு மயில்", "rich", "yes", "no", "no"],
+                  ["shortstory", "சிறு மயில்", "rich", "yes", "no", "yes"],
                 ].map((row) => (
                   <tr key={row[0]} className="border-b border-line">
                     <td className="py-2 pr-4 font-mono text-xs">{row[0]}</td>
