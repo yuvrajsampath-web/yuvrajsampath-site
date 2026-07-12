@@ -1,4 +1,4 @@
-export type CategorySlug = "daily" | "poetry" | "essay" | "shortstory";
+export type CategorySlug = "daily" | "story" | "poetry" | "essay" | "shortstory";
 
 export type ContentFormat = "plain" | "rich";
 
@@ -47,6 +47,18 @@ export const CATEGORIES: CategoryDef[] = [
     hasAudio: false,
   },
   {
+    slug: "story",
+    tamil: "தூவானை",
+    transliteration: "Tuvanai",
+    english: "Story",
+    birdMeaning: "a long-necked bird that lives by the water",
+    format: "rich",
+    topicIndexed: false,
+    hasTitle: true,
+    paginated: false,
+    hasAudio: true,
+  },
+  {
     slug: "poetry",
     tamil: "முருகு சிட்டு",
     transliteration: "Murugu Sittu",
@@ -80,7 +92,7 @@ export const CATEGORIES: CategoryDef[] = [
     topicIndexed: false,
     hasTitle: true,
     paginated: false,
-    hasAudio: true,
+    hasAudio: false,
   },
 ];
 

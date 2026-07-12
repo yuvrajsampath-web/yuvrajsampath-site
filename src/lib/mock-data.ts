@@ -20,8 +20,8 @@ export const MOCK_WRITINGS: Writing[] = [
     createdAt: "2026-07-08T05:35:00.000Z",
   },
   {
-    id: "shortstory-2",
-    category: "shortstory",
+    id: "story-1",
+    category: "story",
     title: "The Weaver's Last Thread",
     body: "<p>For forty years, Muthu had sat at the same loom by the window...</p><p>The cloth he wove was not for markets anymore, but he still rose before dawn, out of habit, out of love.</p>",
     language: "en",

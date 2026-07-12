@@ -74,13 +74,10 @@ never raw field presence.**
 | slug | Tamil | meaning | format | title? | topics? | paginated? | audio? |
 |---|---|---|---|---|---|---|---|
 | `daily` | குறிஞ்சிட்டு | small mountain bird, soft voice | plain | no | yes | yes (by month) | no |
+| `story` | தூவானை | long-necked water bird | rich | yes | no | no | **yes** |
 | `poetry` | முருகு சிட்டு | a bird beautiful enough for verse | plain | yes | no | no | no |
 | `essay` | அன்னம் | the noble freshwater bird | rich | yes | no | no | no |
-| `shortstory` | சிறு மயில் | the small peacock | rich | yes | no | no | **yes** |
-
-`story` (தூவானை) existed early on and was later merged into `shortstory` —
-old `/story/*` links redirect to `/shortstory/*` (see `next.config.ts`),
-and `shortstory` inherited the audio-upload capability `story` had.
+| `shortstory` | சிறு மயில் | the small peacock | rich | yes | no | no | no |
 
 Media (podcasts/videos, குயில்) is a **separate** Firestore collection and
 type (`MediaEntry`), not a sixth entry in `CATEGORIES` — it has no title/body
