@@ -40,14 +40,27 @@ for inactivity.
   for early life, entrepreneurship history, sustainability work, and "on
   writing." Don't fill these in with invented content; wait for real copy.
 
-## Netlify credits — read this before deploying anything
+## Netlify — full outage discovered, migrating to Vercel
 
-**The Netlify account ran out of its free-tier deploy credits (300/month) on
-2026-07-11**, after 34 deploys in about 36 hours of active development. The
-plan resets **2026-08-09**. The user explicitly chose to wait for the reset
-rather than add credits or upgrade — confirm this is still their preference
-before assuming otherwise, since that date will have passed in future
-sessions.
+**Update, 2026-07-13**: what was assumed below (deploys skipped, site keeps
+serving the last good build) turned out to be wrong. Checking the live URL
+showed Netlify's actual "Site not available — paused as it reached its usage
+limits" screen: the whole site is down, not just frozen on stale content.
+Given that, **the decision is to migrate hosting to Vercel** rather than wait
+for the 2026-08-09 credit reset. Scoping showed this repo has almost no
+Netlify lock-in — no committed `netlify.toml`, and the three `src/app/api/*`
+routes are plain Next.js Route Handlers that need no code changes to run on
+Vercel. Migration steps: import the GitHub repo into Vercel, copy the ~7 env
+vars from `.env.local` into its dashboard, then repoint Squarespace DNS from
+Netlify to Vercel (the one step with real downtime risk — do that part
+deliberately, not as a drive-by). Confirm with the user before assuming this
+is still the plan if picking this up much later.
+
+**Original credit-exhaustion history, for context**: Netlify ran out of its
+free-tier deploy credits (300/month) on 2026-07-11, after 34 deploys in about
+36 hours of active development. The plan was due to reset 2026-08-09; the
+user initially chose to wait for that reset rather than add credits or
+upgrade, before the full-outage discovery above changed the plan.
 
 **Practical implications:**
 - Every `git push` to `main` triggers a Netlify build attempt regardless of
@@ -67,6 +80,32 @@ sessions.
   credits — it's a direct Firestore write from the author's browser, nothing
   to do with Netlify. Only actual code changes pushed to GitHub cost credits.
   This distinction has come up before; it's worth being clear about if asked.
+
+## GitHub Actions secrets — were never set, now fixed (2026-07-13)
+
+`backup-firestore.yml` and `notify-subscribers.yml` had **failed on every
+single run since they existed** — `gh secret list` showed zero secrets ever
+configured on the repo, so both scripts died immediately on
+`Missing FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY`.
+Practical effect: there had never been a successful nightly Firestore backup,
+and subscribers had never received a digest email — not a regression, just
+never wired up.
+
+Fixed by setting 5 repo secrets: `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`,
+`FIREBASE_PRIVATE_KEY` (from local `.env.local`), `RESEND_API_KEY` (a new
+"Sending access" key scoped to the `yuvrajsampath.com` domain, generated in
+the Resend dashboard), and `RESEND_FROM_EMAIL` (`daily@yuvrajsampath.com`).
+Both workflows were manually triggered afterward and confirmed working —
+backup pushed a real commit (`9cb3081`), and notify actually sent a live
+digest to 1 subscriber (the Firestore cursor doc already existed from an
+earlier local test, so this wasn't the no-email "first run" case the script's
+guard is meant for — worth knowing if a manual trigger is ever needed again,
+don't assume it's automatically a no-op).
+
+Reply-to note: `daily@yuvrajsampath.com` is a send-only address (Resend only
+sends, it doesn't receive). Replies forwarding to `yuvrajsampath@gmail.com`
+were set up separately via Squarespace's email forwarding (still the DNS
+provider for this domain), not via Resend.
 
 ## Pending work: the Story → Short Story merge
 

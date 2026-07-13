@@ -5,6 +5,13 @@ credits ran out. The plan resets **2026-08-09**. This is what to check when
 picking this back up — most of these logins are long-lived and probably
 still work without re-entering anything, but verify rather than assume.
 
+**Superseded, 2026-07-13**: checking the live site showed Netlify had fully
+paused it (not just skipped new deploys), so the plan changed to migrating
+hosting to Vercel instead of waiting for the reset — see
+`docs/project-status.md`, "Netlify — full outage discovered, migrating to
+Vercel." This checklist is now only relevant if that migration stalls or gets
+abandoned and a return to Netlify is needed.
+
 ## 1. Netlify — the one that actually matters
 
 This is why work paused, so check it first.
