@@ -14,14 +14,14 @@ no CMS login screen a stranger would recognize as one.
 
 The whole thing is designed around one constraint: **stay on Firebase's free
 Spark plan.** No Cloud Functions, no Blaze billing. Everything that would
-normally be a Firebase Function is instead either a Netlify serverless
+normally be a Firebase Function is instead either a Vercel serverless
 function or a scheduled GitHub Action.
 
 ## System map
 
 ```
 ┌─────────────┐     DNS only      ┌──────────────┐
-│ Squarespace │ ────────────────► │   Netlify    │
+│ Squarespace │ ────────────────► │    Vercel    │
 │  (domain)   │                   │  (hosting +  │
 └─────────────┘                   │   CI/CD)     │
                                    └──────┬───────┘
@@ -52,7 +52,7 @@ function or a scheduled GitHub Action.
 
 The Next.js app itself renders public pages by reading Firestore directly
 (server-side, Admin SDK) — there's no separate API layer for the public
-site. The only "backend" beyond Firebase is a handful of Netlify serverless
+site. The only "backend" beyond Firebase is a handful of Vercel serverless
 functions (`src/app/api/*`) for things a public visitor triggers
 (subscribe/unsubscribe, Resend's webhook) that need to run with elevated
 credentials.
@@ -203,10 +203,14 @@ Sending is entirely via GitHub Actions, not Firebase:
 
 ## Deploy pipeline
 
-Push to `main` → Netlify picks it up automatically (connected via GitHub) →
-`next build` → deployed. No manual deploy step in normal operation. Netlify
-was chosen over Firebase Hosting specifically so Cloud Functions (and the
-Blaze plan they require) are never needed.
+Push to `main` → Vercel picks it up automatically (connected via its GitHub
+App) → `next build` → deployed. No manual deploy step in normal operation.
+**Migrated from Netlify to Vercel on 2026-07-13** after Netlify's free-tier
+deploy credits ran out and the site was fully paused, not just stale (see
+`docs/project-status.md` for the full migration record — env var list, DNS
+changes, gotchas). Vercel (like Netlify before it) was chosen over Firebase
+Hosting specifically so Cloud Functions (and the Blaze plan they require) are
+never needed.
 
 **One caveat that's bitten this project before**: `firestore.rules` and
 `storage.rules` are **not** part of this deploy — they're separate Firebase
@@ -261,7 +265,7 @@ storage.rules            Storage security rules (manual publish — see above)
 
 ## Why things are the shape they are (quick reference)
 
-- **No Cloud Functions anywhere** → Netlify hosting + GitHub Actions instead,
+- **No Cloud Functions anywhere** → Vercel hosting + GitHub Actions instead,
   so Firebase stays on the free Spark plan.
 - **Category flags, not field presence** → avoids the class of bug where one
   document with a stray field renders differently from its siblings.

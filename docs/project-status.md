@@ -40,46 +40,62 @@ for inactivity.
   for early life, entrepreneurship history, sustainability work, and "on
   writing." Don't fill these in with invented content; wait for real copy.
 
-## Netlify — full outage discovered, migrating to Vercel
+## Migrated to Vercel (2026-07-13) — Netlify retired
 
-**Update, 2026-07-13**: what was assumed below (deploys skipped, site keeps
-serving the last good build) turned out to be wrong. Checking the live URL
-showed Netlify's actual "Site not available — paused as it reached its usage
-limits" screen: the whole site is down, not just frozen on stale content.
-Given that, **the decision is to migrate hosting to Vercel** rather than wait
-for the 2026-08-09 credit reset. Scoping showed this repo has almost no
-Netlify lock-in — no committed `netlify.toml`, and the three `src/app/api/*`
-routes are plain Next.js Route Handlers that need no code changes to run on
-Vercel. Migration steps: import the GitHub repo into Vercel, copy the ~7 env
-vars from `.env.local` into its dashboard, then repoint Squarespace DNS from
-Netlify to Vercel (the one step with real downtime risk — do that part
-deliberately, not as a drive-by). Confirm with the user before assuming this
-is still the plan if picking this up much later.
+**The site now runs on Vercel, not Netlify.** What was assumed at the time of
+the original Netlify pause (deploys skipped, site keeps serving the last good
+build) turned out to be wrong — checking the live URL showed Netlify's actual
+"Site not available — paused as it reached its usage limits" screen: the
+whole site was down, not just frozen on stale content. Rather than wait for
+the 2026-08-09 credit reset, hosting was migrated to Vercel the same day.
 
-**Original credit-exhaustion history, for context**: Netlify ran out of its
-free-tier deploy credits (300/month) on 2026-07-11, after 34 deploys in about
-36 hours of active development. The plan was due to reset 2026-08-09; the
-user initially chose to wait for that reset rather than add credits or
-upgrade, before the full-outage discovery above changed the plan.
+What was done, in order:
+1. Vercel CLI installed on demand via `npx vercel@latest` (no global install).
+   Logged in as the author (`yuvrajsampath@gmail.com`) via `vercel login`.
+2. `vercel link` created project `yuvrajsampath-8709s-projects/yuvrajsampath`.
+   Connecting the GitHub repo initially failed twice — first needed a GitHub
+   **Login Connection** added to the Vercel account (Account Settings →
+   Login Connections), then needed the **Vercel GitHub App** itself granted
+   access to the `yuvrajsampath-web/yuvrajsampath-site` repo specifically
+   (github.com/settings/installations) — these are two separate
+   authorization steps, both required.
+3. All 10 env vars the app needs at runtime (`NEXT_PUBLIC_FIREBASE_*` ×5,
+   `NEXT_PUBLIC_AUTHOR_EMAIL`, `FIREBASE_PROJECT_ID`/`FIREBASE_CLIENT_EMAIL`/
+   `FIREBASE_PRIVATE_KEY`, `RESEND_WEBHOOK_SECRET`) were copied into Vercel
+   across Production/Preview/Development via `vercel env add`. Nine came from
+   local `.env.local`; `RESEND_WEBHOOK_SECRET` isn't in `.env.local` and had
+   to be pulled from Netlify's env instead (`netlify env:get
+   RESEND_WEBHOOK_SECRET --context production`) since it's only used by
+   `src/app/api/webhooks/resend/route.ts`, not by any local script.
+4. `vercel deploy --prod` confirmed a real build succeeds and serves live
+   Firebase data (not mock fallback) before touching DNS.
+5. DNS cutover at Squarespace (still the DNS provider — nameservers were
+   **not** changed to Vercel's, only two records were): the apex `A` record
+   changed from Netlify's `75.2.60.5` to Vercel's `76.76.21.21`, and the
+   `www` record was changed from a CNAME (pointing at Netlify's
+   `mellifluous-rabanadas-fa8e3c.netlify.app`) to an `A` record at the same
+   Vercel IP. Both required deleting/editing the existing record, not adding
+   a new one alongside it. Every other DNS record (Resend's `links` CNAME,
+   `send` MX/TXT, `resend._domainkey` TXT, and Squarespace's own Email
+   Forwarding records — SPF/DMARC/DKIM/MX via Mailgun, for
+   `daily@yuvrajsampath.com` → `yuvrajsampath@gmail.com`) was left alone and
+   confirmed still intact afterward.
+6. Verified live: HTTPS 200 on both `yuvrajsampath.com` and
+   `www.yuvrajsampath.com`, valid Let's Encrypt cert (auto-renewing via
+   Vercel), `/tirupur` portal reachable.
 
-**Practical implications:**
-- Every `git push` to `main` triggers a Netlify build attempt regardless of
-  credit balance — if credits are still exhausted, the build gets skipped
-  (visible in Netlify's deploy list as `error … Skipped due to account credit
-  usage exceeded`), not queued or retried. The live site keeps serving
-  whatever the last *successful* deploy was; nothing breaks, but nothing new
-  ships either.
-- Once credits are available again (reset, or the user adds credits): normal
-  deploys resume automatically on the next push — no special action needed.
-- **Going forward, batch changes into fewer, larger deploys rather than
-  pushing after every single small request**, the way earlier sessions did.
-  That pace is what burned through the free tier in under two days. Ask the
-  user if they'd like several requested changes bundled into one commit/deploy
-  when it's reasonable to do so.
-- Publishing content through the portal (`/tirupur`) **never** costs deploy
-  credits — it's a direct Firestore write from the author's browser, nothing
-  to do with Netlify. Only actual code changes pushed to GitHub cost credits.
-  This distinction has come up before; it's worth being clear about if asked.
+**Netlify's old site can be fully retired/deleted** — it's no longer in the
+DNS path for anything. Wasn't deleted yet as of this writing, just
+disconnected; low priority to actually remove it since it's already paused
+and costs nothing sitting there unused.
+
+**GitHub Actions workflows are unaffected by this migration** — they run on
+GitHub's own runners regardless of hosting provider, see the section below.
+
+**Netlify credit-exhaustion history, for context (now moot)**: Netlify ran
+out of its free-tier deploy credits (300/month) on 2026-07-11, after 34
+deploys in about 36 hours of active development, which is what prompted this
+whole migration.
 
 ## GitHub Actions secrets — were never set, now fixed (2026-07-13)
 
