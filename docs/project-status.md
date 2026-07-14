@@ -123,45 +123,30 @@ sends, it doesn't receive). Replies forwarding to `yuvrajsampath@gmail.com`
 were set up separately via Squarespace's email forwarding (still the DNS
 provider for this domain), not via Resend.
 
-## Pending work: the Story → Short Story merge
+## Done: the Story → Short Story merge (2026-07-13, second and final attempt)
 
-The user asked to merge தூவானை (Story) into சிறு மயில் (Short Story) —
-removing Story as a category and folding its one entry into Short Story. This
-was **fully implemented, tested, and pushed once already** (commit
-`2dc0ebd`), but the deploy for it hit the credit exhaustion above and was
-skipped, so it never went live. Rather than leave the repo and the live site
-out of sync, it was **reverted** (commit `7d7ad88`) and the one migrated
-Firestore document was moved back to `category: "story"` to match.
+தூவானை (Story) has been folded into சிறு மயில் (Short Story) and no longer
+exists as a category. First attempted earlier (commit `2dc0ebd`), but that
+deploy hit the Netlify credit exhaustion and got skipped, so it was reverted
+(`7d7ad88`) to keep the repo and live site in sync. Redone properly after the
+Vercel migration, this time confirmed live end-to-end:
 
-**The merge is still wanted, just deferred.** When the user is ready (after
-the credit situation resolves), redo it — the exact recipe, already proven to
-work:
-
-1. Migrate Firestore: find `writings` docs with `category == "story"`,
-   update each to `category: "shortstory"` (was exactly one document,
-   id `NSgCj8Hi04yR3pXBiEcl`, at the time this was last done — check current
-   count first, there may be more by then).
-2. In `src/lib/categories.ts`: remove `"story"` from the `CategorySlug`
-   union and delete its `CATEGORIES` entry. Set `hasAudio: true` on
-   `shortstory` (Story had audio upload enabled; Short Story should inherit
-   it so nothing is lost).
-3. In `src/lib/mock-data.ts`: change the story mock entry's `category` to
-   `"shortstory"`.
-4. In `src/app/page.tsx`: remove `"story"` from `PREVIEW_CATEGORIES`.
-5. Add permanent redirects in `next.config.ts`: `/story` → `/shortstory` and
-   `/story/:path*` → `/shortstory/:path*` (old links, including any already
-   emailed to subscribers, keep working).
-6. Update the content-model table in both `docs/architecture.md` and
-   `src/app/tirupur/architecture/page.tsx` to drop the `story` row and mark
-   `shortstory`'s audio column `yes`.
-7. Verify locally (lint, build, dev server + Playwright: nav no longer shows
-   தூவானை, the migrated entry renders under சிறு மயில் with its cover image
-   and audio intact, old `/story/[id]` URLs redirect correctly) before
-   pushing — this was all confirmed working last time, so the same checks
-   should pass again.
-
-Ask before redoing this if it's been a while — confirm the user still wants
-it and that credits are actually available before pushing.
+- Firestore: the one `writings` doc with `category == "story"`
+  (`NSgCj8Hi04yR3pXBiEcl`) updated to `category: "shortstory"`.
+- `src/lib/categories.ts`: `"story"` removed from `CategorySlug` and
+  `CATEGORIES`; `shortstory` now has `hasAudio: true` (inherited from Story,
+  so the audio upload feature isn't lost).
+- `src/lib/mock-data.ts` and `src/app/page.tsx` (`PREVIEW_CATEGORIES`)
+  updated to match.
+- `next.config.ts` has permanent redirects `/story` → `/shortstory` and
+  `/story/:path*` → `/shortstory/:path*`, so old links (including any already
+  emailed to subscribers) keep working.
+- Content-model tables in `docs/architecture.md` and
+  `src/app/tirupur/architecture/page.tsx` updated to drop the `story` row and
+  mark `shortstory`'s audio column `yes`.
+- Verified via Playwright against a local dev server: nav no longer shows
+  தூவானை, the migrated entry renders under சிறு மயில் with cover image and
+  audio intact, and both `/story` and `/story/[id]` redirect correctly.
 
 ## Working conventions established on this project
 
