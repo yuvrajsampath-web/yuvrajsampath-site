@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getMedia } from "@/lib/data";
+import { extractYouTubeId } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,8 @@ function formatDate(iso: string) {
 }
 
 function embedUrl(url: string) {
-  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
-  return null;
+  const id = extractYouTubeId(url);
+  return id ? `https://www.youtube.com/embed/${id}` : null;
 }
 
 export default async function MediaPage() {
