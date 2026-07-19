@@ -18,6 +18,7 @@ import {
   headingFor,
   entryRowHtml,
   sendDigest,
+  sendTestEmail,
 } from "./lib/notify-common.mjs";
 
 const env = requireEnv([
@@ -28,8 +29,36 @@ const env = requireEnv([
   "RESEND_FROM_EMAIL",
 ]);
 const db = initFirestore(env);
+const TEST_TO = process.env.TEST_TO;
+
+// TEST_TO sends the most recent haiku to one address as a preview: no
+// cursor read/write, no subscribers collection touched.
+async function runTest(to) {
+  const snap = await db
+    .collection("writings")
+    .where("category", "==", "daily")
+    .orderBy("createdAt", "desc")
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    console.log("No haiku found to preview.");
+    return;
+  }
+
+  const entry = { id: snap.docs[0].id, ...snap.docs[0].data() };
+  const itemsHtml = entryRowHtml(entry);
+  const subject = headingFor(entry);
+
+  await sendTestEmail(db, { env, subject, itemsHtml, to });
+}
 
 async function main() {
+  if (TEST_TO) {
+    await runTest(TEST_TO);
+    return;
+  }
+
   const cursorRef = db.collection("meta").doc("dailyNotifications");
   const cursorDoc = await cursorRef.get();
 

@@ -88,6 +88,48 @@ export async function removeStaleSubscribers(db) {
   );
 }
 
+export function wrapEmailHtml(itemsHtml, unsubUrl) {
+  return `<!doctype html><html><body style="margin:0;background:#f6f3ec;padding:32px 16px;">
+      <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:32px;">
+        <tr><td>
+          <p style="margin:0 0 24px;font:italic 22px Georgia,serif;color:#201811;">Yuvraj Sampath</p>
+          <table role="presentation" width="100%">${itemsHtml}</table>
+          <p style="margin:32px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
+            <a href="${unsubUrl}" style="color:#6b5d4f;">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </body></html>`;
+}
+
+// Sends one real email to a single address, bypassing the subscribers
+// collection entirely: no unopenedStreak update, no cursor mutation. Used
+// for `test_to` previews (see notify-daily.mjs / notify-weekly.mjs) so a
+// preview send can never touch production subscriber state.
+export async function sendTestEmail(db, { env, subject, itemsHtml, from, to }) {
+  const html = wrapEmailHtml(itemsHtml, `${SITE_URL}/api/unsubscribe?email=test&token=test`);
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: from ?? `Yuvraj Sampath <${env.RESEND_FROM_EMAIL}>`,
+      to,
+      subject: `[TEST] ${subject}`,
+      html,
+      tags: [{ name: "test", value: "true" }],
+    }),
+  });
+  if (!res.ok) {
+    console.error(`Test send failed: ${res.status} ${await res.text()}`);
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`Test email sent to ${to}.`);
+}
+
 export async function sendDigest(db, { env, subject, itemsHtml, from }) {
   const subscribersSnap = await db.collection("subscribers").get();
   if (subscribersSnap.empty) {
@@ -100,17 +142,7 @@ export async function sendDigest(db, { env, subject, itemsHtml, from }) {
   for (const sub of subscribersSnap.docs) {
     const { email, token } = sub.data();
     const unsubUrl = `${SITE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`;
-    const html = `<!doctype html><html><body style="margin:0;background:#f6f3ec;padding:32px 16px;">
-      <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:32px;">
-        <tr><td>
-          <p style="margin:0 0 24px;font:italic 22px Georgia,serif;color:#201811;">Yuvraj Sampath</p>
-          <table role="presentation" width="100%">${itemsHtml}</table>
-          <p style="margin:32px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
-            <a href="${unsubUrl}" style="color:#6b5d4f;">Unsubscribe</a>
-          </p>
-        </td></tr>
-      </table>
-    </body></html>`;
+    const html = wrapEmailHtml(itemsHtml, unsubUrl);
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

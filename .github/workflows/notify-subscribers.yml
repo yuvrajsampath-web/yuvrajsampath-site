@@ -11,6 +11,9 @@ on:
         type: choice
         options: [daily, weekly]
         default: daily
+      test_to:
+        description: "Send a one-off preview to this address instead (optional; no subscribers or cursors touched)"
+        required: false
 
 jobs:
   notify:
@@ -30,6 +33,7 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          TEST_TO: ${{ github.event.inputs.test_to }}
       - name: Weekly recap digest
         if: github.event.schedule == '0 16 * * 0' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'weekly')
         run: node scripts/notify-weekly.mjs
@@ -39,3 +43,4 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          TEST_TO: ${{ github.event.inputs.test_to }}

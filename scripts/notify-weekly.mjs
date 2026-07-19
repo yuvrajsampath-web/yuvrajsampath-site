@@ -13,7 +13,10 @@ import {
   entryRowHtml,
   sectionHeaderHtml,
   sendDigest,
+  sendTestEmail,
 } from "./lib/notify-common.mjs";
+
+const WEEKLY_FROM = "Yuvraj Sampath <weekly@yuvrajsampath.com>";
 
 const env = requireEnv([
   "FIREBASE_PROJECT_ID",
@@ -23,6 +26,7 @@ const env = requireEnv([
   "RESEND_FROM_EMAIL",
 ]);
 const db = initFirestore(env);
+const TEST_TO = process.env.TEST_TO;
 
 const DATE_FMT = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -42,7 +46,51 @@ function formatDateRange(start, end) {
     : `${startMonth} ${startDay} – ${endMonth} ${endDay}`;
 }
 
+function buildSections(entries) {
+  const haiku = entries.filter((w) => w.category === "daily");
+  const others = entries.filter((w) => w.category !== "daily");
+  let itemsHtml = "";
+  if (haiku.length) {
+    itemsHtml += sectionHeaderHtml("This week's haiku") + haiku.map(entryRowHtml).join("");
+  }
+  if (others.length) {
+    itemsHtml += sectionHeaderHtml("Also published this week") + others.map(entryRowHtml).join("");
+  }
+  return { haiku, others, itemsHtml };
+}
+
+// TEST_TO sends a preview built from the last 7 days of content to one
+// address: no cursor read/write, no subscribers collection touched.
+async function runTest(to) {
+  const now = Timestamp.now();
+  const weekAgo = Timestamp.fromMillis(now.toMillis() - 7 * 24 * 60 * 60 * 1000);
+
+  const snap = await db
+    .collection("writings")
+    .where("createdAt", ">", weekAgo)
+    .orderBy("createdAt", "asc")
+    .get();
+
+  if (snap.empty) {
+    console.log("No writings in the last 7 days to preview.");
+    return;
+  }
+
+  const entries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const { haiku, others, itemsHtml } = buildSections(entries);
+  console.log(`${haiku.length} haiku and ${others.length} other update(s) in the preview.`);
+
+  const subject = `This week from Yuvraj Sampath — ${formatDateRange(weekAgo.toDate(), now.toDate())}`;
+
+  await sendTestEmail(db, { env, subject, itemsHtml, from: WEEKLY_FROM, to });
+}
+
 async function main() {
+  if (TEST_TO) {
+    await runTest(TEST_TO);
+    return;
+  }
+
   const cursorRef = db.collection("meta").doc("weeklyNotifications");
   const cursorDoc = await cursorRef.get();
 
@@ -72,32 +120,17 @@ async function main() {
   const entries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   const latestCreatedAt = entries[entries.length - 1].createdAt;
 
-  const haiku = entries.filter((w) => w.category === "daily");
-  const others = entries.filter((w) => w.category !== "daily");
-
+  const { haiku, others, itemsHtml } = buildSections(entries);
   console.log(
     `${haiku.length} haiku and ${others.length} other update(s) to recap this week.`
   );
-
-  let itemsHtml = "";
-  if (haiku.length) {
-    itemsHtml += sectionHeaderHtml("This week's haiku") + haiku.map(entryRowHtml).join("");
-  }
-  if (others.length) {
-    itemsHtml += sectionHeaderHtml("Also published this week") + others.map(entryRowHtml).join("");
-  }
 
   const subject = `This week from Yuvraj Sampath — ${formatDateRange(
     lastNotifiedAt.toDate(),
     now.toDate()
   )}`;
 
-  await sendDigest(db, {
-    env,
-    subject,
-    itemsHtml,
-    from: "Yuvraj Sampath <weekly@yuvrajsampath.com>",
-  });
+  await sendDigest(db, { env, subject, itemsHtml, from: WEEKLY_FROM });
 
   await cursorRef.set({ lastNotifiedAt: latestCreatedAt });
 }
