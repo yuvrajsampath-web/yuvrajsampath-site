@@ -51,11 +51,18 @@ export function stripHtml(html) {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// Recurring sign-off the author appends to daily posts; not part of the
+// poem itself, so it's dropped from the digest rendering.
+const DAILY_SIGNOFF = /காலை வணக்கம்[.\s]*/g;
+
 export function headingFor(w) {
   const def = CATEGORY_LABELS[w.category] ?? CATEGORY_LABELS.daily;
   const raw = def.format === "rich" ? stripHtml(w.body) : w.body;
   const plain = raw.replace(/\s+/g, " ").trim();
-  return def.hasTitle && w.title ? w.title : plain.slice(0, 80);
+  if (def.hasTitle && w.title) return w.title;
+  // "daily" is the only category without a title, and its full text is
+  // short enough to show in full rather than an 80-char excerpt.
+  return w.category === "daily" ? plain.replace(DAILY_SIGNOFF, "").trim() : plain.slice(0, 80);
 }
 
 // First 3 words of a heading, or up to (not including) the first comma —
@@ -131,6 +138,25 @@ export async function removeStaleSubscribers(db) {
   );
 }
 
+// A vCard attachment is the standard cross-client way to prompt an
+// "Add to contacts" action (Gmail, Outlook, and Apple Mail all render an
+// inline button for it) — covers both sender addresses in one card, since
+// Gmail's Primary/Updates sorting is learned per exact From address.
+const VCARD = [
+  "BEGIN:VCARD",
+  "VERSION:3.0",
+  "FN:Yuvraj Sampath",
+  "EMAIL;TYPE=INTERNET:daily@yuvrajsampath.com",
+  "EMAIL;TYPE=INTERNET:weekly@yuvrajsampath.com",
+  "URL:https://yuvrajsampath.com",
+  "END:VCARD",
+].join("\r\n");
+
+export const VCARD_ATTACHMENT = {
+  filename: "yuvraj-sampath.vcf",
+  content: Buffer.from(VCARD, "utf-8").toString("base64"),
+};
+
 export function wrapEmailHtml(itemsHtml, unsubUrl) {
   return `<!doctype html><html><body style="margin:0;background:#f6f3ec;padding:32px 16px;">
       <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:32px;">
@@ -138,6 +164,10 @@ export function wrapEmailHtml(itemsHtml, unsubUrl) {
           <p style="margin:0 0 24px;font:italic 22px Georgia,serif;color:#201811;">Yuvraj Sampath</p>
           <table role="presentation" width="100%">${itemsHtml}</table>
           <p style="margin:32px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
+            Landing outside your Primary inbox? Drag this email there once,
+            or save the attached contact card — Gmail remembers both.
+          </p>
+          <p style="margin:8px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
             <a href="${unsubUrl}" style="color:#6b5d4f;">Unsubscribe</a>
           </p>
         </td></tr>
@@ -162,6 +192,7 @@ export async function sendTestEmail(db, { env, subject, itemsHtml, from, to }) {
       to,
       subject: `[TEST] ${subject}`,
       html,
+      attachments: [VCARD_ATTACHMENT],
       tags: [{ name: "test", value: "true" }],
     }),
   });
@@ -198,6 +229,7 @@ export async function sendDigest(db, { env, subject, itemsHtml, from }) {
         to: email,
         subject,
         html,
+        attachments: [VCARD_ATTACHMENT],
         tags: [{ name: "subscriber_id", value: sub.id }],
       }),
     });
