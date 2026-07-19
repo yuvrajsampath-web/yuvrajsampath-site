@@ -53,7 +53,8 @@ export function stripHtml(html) {
 
 export function headingFor(w) {
   const def = CATEGORY_LABELS[w.category] ?? CATEGORY_LABELS.daily;
-  const plain = def.format === "rich" ? stripHtml(w.body) : w.body;
+  const raw = def.format === "rich" ? stripHtml(w.body) : w.body;
+  const plain = raw.replace(/\s+/g, " ").trim();
   return def.hasTitle && w.title ? w.title : plain.slice(0, 80);
 }
 
