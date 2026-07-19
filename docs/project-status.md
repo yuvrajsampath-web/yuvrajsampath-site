@@ -31,8 +31,11 @@ The site is **live, stable, and feature-complete** at yuvrajsampath.com. The
 author can independently: write/edit/delete entries in all 5 writing
 categories plus media, upload cover images and (for stories) audio
 recordings, and import `.docx`/`.pdf` files into the rich editor. Email
-subscribers get a daily digest via Resend/GitHub Actions with auto-unsubscribe
-for inactivity.
+subscribers get a daily குறிஞ்சிட்டு digest plus a Sunday weekly recap of
+everything else, both via Resend/GitHub Actions with auto-unsubscribe for
+inactivity (see "Subscriber digest overhaul" below). There's also now a
+Books section (`/books`, வானம்பாடி) with three compiled PDF volumes of
+daily entries (see "Added a Books section" below).
 
 **Known gaps, not bugs:**
 - The About page (`src/app/about/page.tsx`) still has four placeholder bio
@@ -147,6 +150,111 @@ Vercel migration, this time confirmed live end-to-end:
 - Verified via Playwright against a local dev server: nav no longer shows
   தூவானை, the migrated entry renders under சிறு மயில் with cover image and
   audio intact, and both `/story` and `/story/[id]` redirect correctly.
+
+## Subscriber digest overhaul: daily/weekly split (2026-07-19)
+
+The single combined `notify-subscribers.mjs` script was replaced with two:
+`scripts/notify-daily.mjs` (haiku/குறிஞ்சிட்டு only, unchanged nightly cron)
+and `scripts/notify-weekly.mjs` (everything else — poetry/essays/stories/
+media — plus a recap of that week's குறிஞ்சிட்டு, new Sunday cron). Shared
+helpers live in `scripts/lib/notify-common.mjs`. Each cadence has its own
+Firestore cursor (`meta/dailyNotifications` vs `meta/weeklyNotifications`)
+so they don't interfere. `.github/workflows/notify-subscribers.yml` now has
+two `schedule` entries plus a `workflow_dispatch` with a `mode` (daily/weekly)
+and a `test_to` input — the latter sends a real one-off preview to a single
+address without touching the subscribers collection or advancing any cursor,
+added specifically to test changes safely before a real send.
+
+The weekly digest's first-ever run is a silent cursor bootstrap (same pattern
+as the original daily script) — it won't send a real recap until the Sunday
+*after* that, which is expected, not a bug, if a session finds no weekly
+email has gone out yet.
+
+Presentation fixes made along the way, all in `notify-common.mjs` unless
+noted: sender now carries a display name (`Yuvraj Sampath <daily@...>` /
+`<weekly@...>`) instead of showing as the bare address in inbox lists;
+subjects use actual content instead of a generic label, truncated to the
+first 3 words or up to the first comma for the daily digest
+(`truncateForSubject`); the word "haiku" is never shown to subscribers,
+only "குறிஞ்சிட்டு"; per-entry labels for குறிஞ்சிட்டு show the actual
+posted date instead of a repeated "DAILY" tag; full poem text (with real
+line breaks, matching the site's own `whitespace-pre-line` rendering)
+replaces what used to be an 80-char excerpt, and the recurring
+"காலை வணக்கம்" sign-off line is stripped; the "Read →" link is dropped for
+குறிஞ்சிட்டு entries specifically (full text already shown inline) but
+kept for other categories (only an excerpt shown, link needed to read the
+rest); a vCard attachment (both `daily@`/`weekly@yuvrajsampath.com` in one
+contact) plus a footer nudge encourage Gmail's Primary-tab placement, since
+there's no sender-side header that can force it — Gmail's tab sorting is
+per-recipient and learned, not set by the sender.
+
+Two real bugs surfaced only by testing against production content rather
+than hand-written samples, worth remembering for future scripts touching
+this content: (1) any `<Text>` in a react-pdf/Resend HTML context that
+mixes Tamil with other text needs an *explicit* `fontFamily` — anything
+without one silently renders as mojibake rather than erroring; (2) Resend
+rejects literal `\n` in the subject field, so any subject built from raw
+body text must have its whitespace collapsed first.
+
+## Added a Books section: three PDF volumes from daily entries (2026-07-19)
+
+New site section at `/books`, branded வானம்பாடி (Vanambadi — skylark; the
+nav tab and page heading) — deliberately kept outside the `CATEGORIES`/
+`CategorySlug` system since it's a generated compilation, not portal-authored
+content. `scripts/generate-books.mjs` fetches every "daily" writing,
+deterministically shuffles them (seeded, so re-running without new entries
+reproduces the same three volumes), splits into three roughly-equal groups,
+and renders each as a 7×5in landscape PDF via `@react-pdf/renderer`: gradient
+cover + colophon page + one entry per page, decorative border with a
+bottom-right bird-in-flight motif on every page. Tamil text uses
+`@fontsource/noto-serif-tamil` / `@fontsource/noto-sans-tamil` (same families
+the site itself uses via `next/font/google`), embedded as `.woff` files —
+`.woff2` is not reliably supported by react-pdf's font engine, use `.woff`.
+
+The book's own printed title is "சிந்தித்து பாருங்கள்" (distinct from the
+section's வானம்பாடி bird-name identity), with volumes labeled "தொகுப்பு
+1/2/3". No dates anywhere, no haiku counts displayed, text is left-aligned
+at a fixed 12pt/1.35 line-height (chosen empirically — the largest fixed
+size at which all 596 real entries, after two normalization steps, still
+fit on one page each with zero overflow): blank-line runs of 3+ collapse to
+one, and each line breaks after every comma/ellipsis (a natural pause point
+the author's punctuation already suggests). PDFs upload to Firebase Storage
+(`books/`) via `getDownloadURL` from `firebase-admin/storage` (token-based
+URL, works with the existing `allow read: if true` rule — no GCS-level
+public ACL needed); metadata lands in a new Firestore `books` collection,
+read publicly through the Admin SDK (`src/lib/data.ts` `getBooks()`, same
+pattern as `getMedia()`). Regeneration is manual only
+(`.github/workflows/generate-books.yml`, `workflow_dispatch`, no cron) —
+this is a point-in-time compilation, re-run by hand whenever a fresh edition
+is wanted, not an ongoing pipeline.
+
+New GitHub secret `FIREBASE_STORAGE_BUCKET` was added for this (bucket name
+isn't actually sensitive — same value as the public
+`NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` — just needed in Actions env). New npm
+deps: `@react-pdf/renderer`, `@fontsource/noto-sans-tamil`,
+`@fontsource/noto-serif-tamil`. `storage.rules`/`firestore.rules` were
+updated for the new `books/` path and collection but — per this project's
+usual constraint — **not confirmed manually published** in the Firebase
+console as of this writing; low urgency since the token-based PDF URLs and
+Admin-SDK reads both bypass rules regardless, but should get published for
+consistency.
+
+Current published state: 199/199/198 entries across the three books (596
+total daily entries with content, out of however many exist in Firestore —
+some are empty/stray docs, filtered out). If the author writes enough new
+குறிஞ்சிட்டு to want a refreshed edition, re-run the workflow — it will
+reshuffle across the *current* full set, not just new entries since last run.
+
+## Tagline change: "Advocate" → "Environmentalist" (2026-07-19)
+
+"Entrepreneur · Advocate · Author" (and the "Sustainability Advocate"
+variant) changed to just "Environmentalist" (no "Sustainability" prefix,
+after an initial pass that kept it) in three places: `HomeHero.tsx`,
+`opengraph-image.tsx` (both the rendered image text and its `alt`), and the
+About page's `metadata.description`. The About page's placeholder draft
+text (still-unfilled bio section mentioning "sustainability advocacy") was
+deliberately left alone — it's draft/placeholder copy waiting on the
+author's real text, not the tagline itself.
 
 ## Working conventions established on this project
 
