@@ -46,15 +46,22 @@ function formatDateRange(start, end) {
     : `${startMonth} ${startDay} – ${endMonth} ${endDay}`;
 }
 
+// letter-spacing/uppercase break Tamil script rendering, so only the
+// English portion of the haiku section label gets that styling.
+const HAIKU_SECTION_LABEL =
+  '<span style="letter-spacing:.08em;text-transform:uppercase;">This week’s</span> குறிஞ்சிட்டு';
+const OTHERS_SECTION_LABEL =
+  '<span style="letter-spacing:.08em;text-transform:uppercase;">Also published this week</span>';
+
 function buildSections(entries) {
   const haiku = entries.filter((w) => w.category === "daily");
   const others = entries.filter((w) => w.category !== "daily");
   let itemsHtml = "";
   if (haiku.length) {
-    itemsHtml += sectionHeaderHtml("This week's குறிஞ்சிட்டு") + haiku.map(entryRowHtml).join("");
+    itemsHtml += sectionHeaderHtml(HAIKU_SECTION_LABEL) + haiku.map(entryRowHtml).join("");
   }
   if (others.length) {
-    itemsHtml += sectionHeaderHtml("Also published this week") + others.map(entryRowHtml).join("");
+    itemsHtml += sectionHeaderHtml(OTHERS_SECTION_LABEL) + others.map(entryRowHtml).join("");
   }
   return { haiku, others, itemsHtml };
 }

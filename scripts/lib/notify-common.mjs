@@ -92,19 +92,30 @@ export function entryRowHtml(w) {
   const def = CATEGORY_LABELS[w.category] ?? CATEGORY_LABELS.daily;
   const heading = headingFor(w);
   const url = `${SITE_URL}/${w.category}/${w.id}`;
-  const label = w.category === "daily" ? formatPostedDate(w.publishedAt) : def.english;
+  const isDaily = w.category === "daily";
+  const label = isDaily ? formatPostedDate(w.publishedAt) : def.english;
+  // குறிஞ்சிட்டு entries already show their full text inline, so a "Read"
+  // link is redundant there; other categories only show a short excerpt
+  // and need it to reach the full piece.
+  const readLink = isDaily
+    ? ""
+    : `<a href="${url}" style="font:14px system-ui,sans-serif;color:#c1652a;">Read →</a>`;
   return `
     <tr><td style="padding:20px 0;border-top:1px solid #e4ddd1;">
       <p style="margin:0 0 4px;font:12px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6b5d4f;">${escapeHtml(label)}</p>
       <p style="margin:0 0 8px;font:20px/1.4 Georgia,serif;color:#201811;">${escapeHtml(heading)}</p>
-      <a href="${url}" style="font:14px system-ui,sans-serif;color:#c1652a;">Read →</a>
+      ${readLink}
     </td></tr>`;
 }
 
-export function sectionHeaderHtml(label) {
+// labelHtml is trusted, pre-built HTML (may mix a styled English span with
+// plain Tamil text) rather than a plain string — see notify-weekly.mjs for
+// why: text-transform/letter-spacing on Tamil script breaks its rendering,
+// so only the English portion gets those styles applied.
+export function sectionHeaderHtml(labelHtml) {
   return `
     <tr><td style="padding:24px 0 0;">
-      <p style="margin:0;font:13px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#c1652a;">${escapeHtml(label)}</p>
+      <p style="margin:0;font:13px system-ui,sans-serif;color:#c1652a;">${labelHtml}</p>
     </td></tr>`;
 }
 
