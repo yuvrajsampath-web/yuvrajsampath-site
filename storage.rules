@@ -17,5 +17,13 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAuthor();
     }
+
+    // Generated book PDFs (scripts/generate-books.mjs writes via the Admin
+    // SDK, which bypasses these rules entirely — this just controls what a
+    // client-side request could do, and there is no portal UI for it).
+    match /books/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

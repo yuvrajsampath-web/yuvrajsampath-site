@@ -1,4 +1,4 @@
-import type { MediaEntry, Writing } from "./types";
+import type { Book, MediaEntry, Writing } from "./types";
 
 export const MOCK_WRITINGS: Writing[] = [
   {
@@ -73,5 +73,19 @@ export const MOCK_MEDIA: MediaEntry[] = [
     description: "Recorded readings from recent short stories.",
     url: "https://www.youtube.com/",
     publishedAt: "2026-05-10",
+  },
+];
+
+export const MOCK_BOOKS: Book[] = [
+  {
+    id: "book-1",
+    order: 1,
+    title: "Book One",
+    tamilTitle: "வானம்பாடி",
+    haikuCount: 2,
+    dateRange: "8 Jul 2026 – 9 Jul 2026",
+    pdfUrl: "#",
+    pdfSizeBytes: 0,
+    generatedAt: "2026-07-19T00:00:00.000Z",
   },
 ];

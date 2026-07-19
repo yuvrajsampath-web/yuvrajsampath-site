@@ -1,0 +1,24 @@
+name: Generate books
+
+# Manual only — this compiles whatever "daily" (குறிஞ்சிட்டு) entries exist
+# right now into the three வானம்பாடி PDF volumes. Not a scheduled pipeline
+# like notify-subscribers.yml; re-run by hand whenever a fresh edition is
+# wanted (see scripts/generate-books.mjs).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: node scripts/generate-books.mjs
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}

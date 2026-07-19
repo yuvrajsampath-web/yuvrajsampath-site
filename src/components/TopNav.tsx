@@ -39,6 +39,7 @@ export function TopNav() {
             <NavLink key={c.slug} href={`/${c.slug}`} tamil={c.tamil} english={c.english} />
           ))}
           <NavLink href="/media" tamil="குயில்" english="Media" />
+          <NavLink href="/books" tamil="வானம்பாடி" english="Books" />
         </nav>
 
         <div className="flex shrink-0 items-center gap-4">
