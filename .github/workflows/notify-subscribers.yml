@@ -2,8 +2,15 @@ name: Notify subscribers
 
 on:
   schedule:
-    - cron: "0 16 * * *" # 21:30 IST — after the day's usual publishing time
-  workflow_dispatch: {}
+    - cron: "0 16 * * *" # daily haiku digest, every day, 21:30 IST
+    - cron: "0 16 * * 0" # weekly recap, Sundays, 21:30 IST
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Which digest to send"
+        type: choice
+        options: [daily, weekly]
+        default: daily
 
 jobs:
   notify:
@@ -14,7 +21,18 @@ jobs:
         with:
           node-version: 22
       - run: npm install firebase-admin
-      - run: node scripts/notify-subscribers.mjs
+      - name: Daily haiku digest
+        if: github.event.schedule == '0 16 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'daily')
+        run: node scripts/notify-daily.mjs
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+      - name: Weekly recap digest
+        if: github.event.schedule == '0 16 * * 0' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'weekly')
+        run: node scripts/notify-weekly.mjs
         env:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
