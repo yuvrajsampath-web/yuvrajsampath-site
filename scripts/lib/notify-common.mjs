@@ -51,18 +51,28 @@ export function stripHtml(html) {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// Recurring sign-off the author appends to daily posts; not part of the
-// poem itself, so it's dropped from the digest rendering.
-const DAILY_SIGNOFF = /காலை வணக்கம்[.\s]*/g;
+// Recurring sign-off the author appends to daily posts as its own line;
+// not part of the poem itself, so it's dropped from the digest rendering.
+const DAILY_SIGNOFF_LINE = /^காலை\s+வணக்கம்[.\s]*$/;
+
+function stripDailySignoff(raw) {
+  return raw
+    .split("\n")
+    .filter((line) => !DAILY_SIGNOFF_LINE.test(line.trim()))
+    .join("\n")
+    .trim();
+}
 
 export function headingFor(w) {
   const def = CATEGORY_LABELS[w.category] ?? CATEGORY_LABELS.daily;
-  const raw = def.format === "rich" ? stripHtml(w.body) : w.body;
-  const plain = raw.replace(/\s+/g, " ").trim();
   if (def.hasTitle && w.title) return w.title;
-  // "daily" is the only category without a title, and its full text is
-  // short enough to show in full rather than an 80-char excerpt.
-  return w.category === "daily" ? plain.replace(DAILY_SIGNOFF, "").trim() : plain.slice(0, 80);
+  if (w.category === "daily") {
+    // Mirrors the site's own rendering (whitespace-pre-line over the raw
+    // string, no HTML) — line breaks are preserved, not collapsed.
+    return stripDailySignoff(w.body);
+  }
+  const raw = def.format === "rich" ? stripHtml(w.body) : w.body;
+  return raw.replace(/\s+/g, " ").trim().slice(0, 80);
 }
 
 // First 3 words of a heading, or up to (not including) the first comma —
@@ -110,7 +120,7 @@ export function entryRowHtml(w) {
   return `
     <tr><td style="padding:20px 0;border-top:1px solid #e4ddd1;">
       <p style="margin:0 0 4px;font:12px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6b5d4f;">${escapeHtml(label)}</p>
-      <p style="margin:0 0 8px;font:20px/1.4 Georgia,serif;color:#201811;">${escapeHtml(heading)}</p>
+      <p style="margin:0 0 8px;font:20px/1.4 Georgia,serif;color:#201811;white-space:pre-line;">${escapeHtml(heading)}</p>
       ${readLink}
     </td></tr>`;
 }
@@ -159,17 +169,25 @@ export const VCARD_ATTACHMENT = {
 
 export function wrapEmailHtml(itemsHtml, unsubUrl) {
   return `<!doctype html><html><body style="margin:0;background:#f6f3ec;padding:32px 16px;">
-      <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:32px;">
+      <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;">
         <tr><td>
-          <p style="margin:0 0 24px;font:italic 22px Georgia,serif;color:#201811;">Yuvraj Sampath</p>
-          <table role="presentation" width="100%">${itemsHtml}</table>
-          <p style="margin:32px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
-            Landing outside your Primary inbox? Drag this email there once,
-            or save the attached contact card — Gmail remembers both.
-          </p>
-          <p style="margin:8px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
-            <a href="${unsubUrl}" style="color:#6b5d4f;">Unsubscribe</a>
-          </p>
+          <table role="presentation" width="100%" style="background:#ffffff;border-radius:8px;padding:32px;">
+            <tr><td>
+              <p style="margin:0 0 24px;font:italic 22px Georgia,serif;color:#201811;">Yuvraj Sampath</p>
+              <table role="presentation" width="100%">${itemsHtml}</table>
+            </td></tr>
+          </table>
+          <table role="presentation" width="100%" style="padding:20px 8px 0;">
+            <tr><td>
+              <p style="margin:0;font:12px system-ui,sans-serif;color:#6b5d4f;">
+                Landing outside your Primary inbox? Drag this email there once,
+                or save the attached contact card — Gmail remembers both.
+              </p>
+              <p style="margin:8px 0 0;font:12px system-ui,sans-serif;color:#6b5d4f;">
+                <a href="${unsubUrl}" style="color:#6b5d4f;">Unsubscribe</a>
+              </p>
+            </td></tr>
+          </table>
         </td></tr>
       </table>
     </body></html>`;
