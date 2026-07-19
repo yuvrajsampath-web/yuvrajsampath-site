@@ -51,16 +51,14 @@ export function stripHtml(html) {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// Recurring sign-off the author appends to daily posts as its own line;
-// not part of the poem itself, so it's dropped from the digest rendering.
-const DAILY_SIGNOFF_LINE = /^காலை\s+வணக்கம்[.\s]*$/;
+// Recurring sign-off the author appends to daily posts -- sometimes its
+// own paragraph, sometimes tacked onto the end of the last line -- so this
+// matches the phrase wherever it falls rather than requiring a whole-line
+// match, then trims any newlines/spaces it leaves dangling.
+const DAILY_SIGNOFF = /காலை\s+வணக்கம்[.\s]*/g;
 
 function stripDailySignoff(raw) {
-  return raw
-    .split("\n")
-    .filter((line) => !DAILY_SIGNOFF_LINE.test(line.trim()))
-    .join("\n")
-    .trim();
+  return raw.replace(DAILY_SIGNOFF, "").trim();
 }
 
 export function headingFor(w) {
