@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "About — Yuvraj Sampath",
-  description: "Entrepreneur, sustainability advocate, and bilingual author.",
+  description: "Entrepreneur, environmentalist, and bilingual author.",
 };
 
 function PlaceholderNote({ children }: { children: React.ReactNode }) {
