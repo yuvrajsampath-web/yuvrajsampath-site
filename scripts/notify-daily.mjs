@@ -34,11 +34,13 @@ const TEST_TO = process.env.TEST_TO;
 // TEST_TO sends the most recent haiku to one address as a preview: no
 // cursor read/write, no subscribers collection touched.
 async function runTest(to) {
+  // Reuses the same ascending (category, createdAt) index as the real
+  // query rather than requesting descending order, which would need a
+  // second composite index just for this preview path.
   const snap = await db
     .collection("writings")
     .where("category", "==", "daily")
-    .orderBy("createdAt", "desc")
-    .limit(1)
+    .orderBy("createdAt", "asc")
     .get();
 
   if (snap.empty) {
@@ -46,7 +48,8 @@ async function runTest(to) {
     return;
   }
 
-  const entry = { id: snap.docs[0].id, ...snap.docs[0].data() };
+  const last = snap.docs[snap.docs.length - 1];
+  const entry = { id: last.id, ...last.data() };
   const itemsHtml = entryRowHtml(entry);
   const subject = headingFor(entry);
 
