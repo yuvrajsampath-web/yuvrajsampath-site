@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Yuvraj Sampath — Entrepreneur, Sustainability Advocate, Bilingual Author";
+export const alt = "Yuvraj Sampath — Entrepreneur, Sustainability Environmentalist, Bilingual Author";
 
 export default async function Image() {
   return new ImageResponse(
@@ -40,7 +40,7 @@ export default async function Image() {
             fontFamily: "Georgia, serif",
           }}
         >
-          Entrepreneur · Sustainability Advocate · Bilingual Author
+          Entrepreneur · Sustainability Environmentalist · Bilingual Author
         </div>
       </div>
     ),

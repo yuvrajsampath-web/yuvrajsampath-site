@@ -39,7 +39,7 @@ export function HomeHero({ entry }: { entry: Writing | null }) {
           />
           <div className="absolute inset-x-0 bottom-0 bg-[#2a1410]/80 px-4 py-2 text-center">
             <p className="text-[0.65rem] tracking-[0.15em] uppercase text-white">
-              Entrepreneur · Advocate · Author
+              Entrepreneur · Environmentalist · Author
             </p>
           </div>
         </div>
