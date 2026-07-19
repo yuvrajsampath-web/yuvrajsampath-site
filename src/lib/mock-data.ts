@@ -80,10 +80,9 @@ export const MOCK_BOOKS: Book[] = [
   {
     id: "book-1",
     order: 1,
-    title: "Book One",
-    tamilTitle: "வானம்பாடி",
+    title: "தொகுப்பு 1",
+    tamilTitle: "சிந்தித்து பாருங்கள்",
     haikuCount: 2,
-    dateRange: "8 Jul 2026 – 9 Jul 2026",
     pdfUrl: "#",
     pdfSizeBytes: 0,
     generatedAt: "2026-07-19T00:00:00.000Z",

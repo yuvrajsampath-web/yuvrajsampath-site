@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "வானம்பாடி — Books",
-  description: "Collected குறிஞ்சிட்டு (daily haiku) by Yuvraj Sampath, bound into print-ready volumes.",
+  description: "Collected குறிஞ்சிட்டு by Yuvraj Sampath, bound into print-ready volumes.",
 };
 
 export default async function BooksPage() {
@@ -35,27 +35,24 @@ export default async function BooksPage() {
                 aria-label={`Open ${book.title} as PDF`}
               >
                 <div
-                  className="flex aspect-[5/7] w-full flex-col items-center justify-center gap-3 px-3 text-center"
+                  className="flex aspect-[7/5] w-full flex-col items-center justify-center gap-2 px-4 text-center"
                   style={{
                     background: "linear-gradient(160deg, #f4c88b 0%, #db7a3c 55%, #2a1410 100%)",
                   }}
                 >
-                  <p className="font-tamil-display text-xl text-[#fff8ee] max-w-full">
+                  <p className="font-tamil-display text-base text-[#fff8ee] max-w-full">
                     {book.tamilTitle}
                   </p>
-                  <p className="text-[0.65rem] tracking-[0.2em] uppercase text-[#fff8ee]/85">
-                    {book.title}
-                  </p>
+                  <p className="text-[0.65rem] tracking-[0.2em] text-[#fff8ee]/85">{book.title}</p>
                   <div className="h-px w-10 bg-[#fff8ee]/60" />
                   <p className="text-[0.65rem] text-[#fff8ee]/75">{book.haikuCount} குறிஞ்சிட்டு</p>
                 </div>
               </a>
-              <p className="mt-3 text-sm text-muted">{book.dateRange}</p>
               <a
                 href={book.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-block text-sm text-amber hover:opacity-75 transition-opacity"
+                className="mt-3 inline-block text-sm text-amber hover:opacity-75 transition-opacity"
               >
                 View / download PDF →
               </a>

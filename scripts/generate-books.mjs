@@ -1,7 +1,10 @@
-// Compiles all "daily" category writings (குறிஞ்சிட்டு haiku) into three
-// print-ready PDF volumes under a shared "வானம்பாடி" (Vanambadi/skylark)
-// title, uploads them to Firebase Storage, and records them in a new
-// Firestore "books" collection (read by src/lib/data.ts getBooks()).
+// Compiles all "daily" category writings (குறிஞ்சிட்டு) into three
+// print-ready PDF volumes titled "சிந்தித்து பாருங்கள்", uploads them to
+// Firebase Storage, and records them in a Firestore "books" collection
+// (read by src/lib/data.ts getBooks()). The section itself is branded
+// வானம்பாடி (see src/components/TopNav.tsx / src/app/books/page.tsx) —
+// that's the site's bird-name identity for the section, distinct from
+// this particular compilation's own printed title.
 //
 // Not an ongoing pipeline like the notify-*.mjs digests — this is a
 // point-in-time compilation of whatever "daily" entries currently exist,
@@ -20,6 +23,7 @@ import {
   LinearGradient,
   Stop,
   Rect,
+  Path,
   Font,
   renderToBuffer,
 } from "@react-pdf/renderer";
@@ -74,10 +78,10 @@ Font.register({
   fonts: [{ src: fontPath("@fontsource/noto-sans-tamil", "noto-sans-tamil-tamil-400-normal.woff") }],
 });
 
-const PAGE_SIZE = [360, 504]; // 5in x 7in at 72pt/in
-const TAMIL_TITLE = "வானம்பாடி";
-const BOOK_LABELS = ["Book One", "Book Two", "Book Three"];
-const BOOK_COUNT = BOOK_LABELS.length;
+const PAGE_SIZE = [504, 360]; // 7in x 5in landscape at 72pt/in
+const BOOK_TITLE = "சிந்தித்து பாருங்கள்";
+const THOGUPU_LABELS = ["தொகுப்பு 1", "தொகுப்பு 2", "தொகுப்பு 3"];
+const BOOK_COUNT = THOGUPU_LABELS.length;
 const CREAM = "#fff8ee";
 const INK = "#201811";
 const MUTED = "#6b5d4f";
@@ -91,7 +95,7 @@ function cleanBody(raw) {
 }
 
 // Deterministic shuffle (mulberry32) so re-running the script without new
-// haiku reproduces the same three volumes rather than reshuffling at random.
+// entries reproduces the same three volumes rather than reshuffling at random.
 function seededShuffle(arr, seed) {
   let s = seed;
   function rand() {
@@ -109,17 +113,32 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: "Asia/Kolkata",
-});
-function formatDate(publishedAt) {
-  return DATE_FMT.format(new Date(`${publishedAt}T12:00:00Z`));
+// A small two-arc "bird in flight" doodle, centered at (cx, y).
+function birdMotif(cx, y, color) {
+  const half = 13;
+  return h(Path, {
+    d: `M ${cx - half * 2} ${y + 5} Q ${cx - half} ${y - 6} ${cx} ${y + 5} Q ${cx + half} ${y - 6} ${cx + half * 2} ${y + 5}`,
+    stroke: color,
+    strokeWidth: 1.3,
+    fill: "none",
+  });
 }
 
-function coverPage(index, count, dateRange) {
+// Thin frame inset from the page edge, with the bird motif perched above
+// the top line — same treatment on every interior page.
+function pageBorder(color) {
+  const inset = 20;
+  const width = PAGE_SIZE[0] - inset * 2;
+  const height = PAGE_SIZE[1] - inset * 2;
+  return h(
+    Svg,
+    { style: { position: "absolute", width: "100%", height: "100%" } },
+    h(Rect, { x: inset, y: inset, width, height, stroke: color, strokeWidth: 0.75, fill: "none" }),
+    birdMotif(PAGE_SIZE[0] / 2, inset - 9, color)
+  );
+}
+
+function coverPage(index, count) {
   return h(
     Page,
     { size: PAGE_SIZE },
@@ -139,6 +158,7 @@ function coverPage(index, count, dateRange) {
       ),
       h(Rect, { x: 0, y: 0, width: PAGE_SIZE[0], height: PAGE_SIZE[1], fill: "url(#sky)" })
     ),
+    pageBorder(CREAM),
     h(
       View,
       {
@@ -157,21 +177,37 @@ function coverPage(index, count, dateRange) {
       },
       h(
         Text,
-        { style: { fontFamily: "NotoSerifTamil", fontWeight: 700, fontSize: 42, color: CREAM, textAlign: "center" } },
-        TAMIL_TITLE
+        {
+          style: {
+            fontFamily: "NotoSerifTamil",
+            fontWeight: 700,
+            fontSize: 32,
+            color: CREAM,
+            textAlign: "center",
+          },
+        },
+        BOOK_TITLE
       ),
-      h(
-        Text,
-        { style: { marginTop: 10, fontSize: 11, color: CREAM, letterSpacing: 2 } },
-        BOOK_LABELS[index].toUpperCase()
-      ),
-      h(View, { style: { marginTop: 28, width: 60, height: 1, backgroundColor: CREAM, opacity: 0.6 } }),
       h(
         Text,
         {
           style: {
             fontFamily: "NotoSansTamil",
-            marginTop: 20,
+            marginTop: 10,
+            fontSize: 11,
+            color: CREAM,
+            letterSpacing: 2,
+          },
+        },
+        THOGUPU_LABELS[index]
+      ),
+      h(View, { style: { marginTop: 24, width: 60, height: 1, backgroundColor: CREAM, opacity: 0.6 } }),
+      h(
+        Text,
+        {
+          style: {
+            fontFamily: "NotoSansTamil",
+            marginTop: 16,
             fontSize: 9,
             color: CREAM,
             opacity: 0.85,
@@ -179,8 +215,7 @@ function coverPage(index, count, dateRange) {
           },
         },
         `${count} குறிஞ்சிட்டு`
-      ),
-      h(Text, { style: { marginTop: 4, fontSize: 8, color: CREAM, opacity: 0.7 } }, dateRange)
+      )
     ),
     h(
       Text,
@@ -202,53 +237,84 @@ function coverPage(index, count, dateRange) {
   );
 }
 
-function colophonPage(index, count, dateRange) {
+function colophonPage(index, count) {
   return h(
     Page,
-    { size: PAGE_SIZE, style: { padding: 48, display: "flex", flexDirection: "column", justifyContent: "center" } },
-    h(Text, { style: { fontFamily: "NotoSerifTamil", fontSize: 22, color: INK } }, TAMIL_TITLE),
-    h(Text, { style: { marginTop: 6, fontSize: 11, color: MUTED, letterSpacing: 1 } }, `${BOOK_LABELS[index]} of ${BOOK_COUNT}`),
-    h(View, { style: { marginTop: 24, width: 40, height: 1, backgroundColor: LINE } }),
+    { size: PAGE_SIZE },
+    pageBorder(MUTED),
     h(
-      Text,
-      { style: { fontFamily: "NotoSansTamil", marginTop: 24, fontSize: 10, color: MUTED, lineHeight: 1.6 } },
-      `A collection of ${count} குறிஞ்சிட்டு — daily haiku by Yuvraj Sampath, written ${dateRange}.`
-    ),
-    h(
-      Text,
-      { style: { marginTop: 40, fontSize: 8, color: MUTED, opacity: 0.7 } },
-      `Compiled ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`
+      View,
+      { style: { padding: 48, display: "flex", flexDirection: "column", justifyContent: "center" } },
+      h(Text, { style: { fontFamily: "NotoSerifTamil", fontSize: 22, color: INK } }, BOOK_TITLE),
+      h(
+        Text,
+        { style: { fontFamily: "NotoSansTamil", marginTop: 6, fontSize: 11, color: MUTED, letterSpacing: 1 } },
+        THOGUPU_LABELS[index]
+      ),
+      h(View, { style: { marginTop: 20, width: 40, height: 1, backgroundColor: LINE } }),
+      h(
+        Text,
+        { style: { fontFamily: "NotoSansTamil", marginTop: 20, fontSize: 10, color: MUTED, lineHeight: 1.6 } },
+        `${count} குறிஞ்சிட்டு by Yuvraj Sampath.`
+      )
     )
   );
 }
 
-// Keeps "one poem, one page" even for the rare long entry (a handful run to
-// 13-14 lines against a typical 3-6) by scaling text down to fit the fixed
-// 5x7in page instead of letting react-pdf spill it onto a continuation page.
-function sizeForLineCount(lineCount) {
-  if (lineCount <= 6) return { fontSize: 19, lineHeight: 1.8 };
-  if (lineCount <= 9) return { fontSize: 17, lineHeight: 1.6 };
-  if (lineCount <= 12) return { fontSize: 15, lineHeight: 1.5 };
-  return { fontSize: 13, lineHeight: 1.4 };
+// Keeps "one poem, one page" on the fixed landscape page (much less
+// vertical room than a portrait layout) even for outlier entries. Two
+// independent failure modes need covering: many short explicit line
+// breaks (stanza gaps stack up vertically even though the text itself is
+// short) and a single long unbroken line (wraps and eats width instead of
+// height) — so this picks whichever tier is more conservative for each,
+// verified empirically against every real entry with no overflow left
+// (see the diagnose-overflow*.mjs throwaway scripts used during tuning).
+const LINE_TIERS = [
+  [4, { fontSize: 20, lineHeight: 1.9 }],
+  [6, { fontSize: 18, lineHeight: 1.7 }],
+  [9, { fontSize: 15, lineHeight: 1.55 }],
+  [12, { fontSize: 13, lineHeight: 1.45 }],
+  [Infinity, { fontSize: 11, lineHeight: 1.35 }],
+];
+const CHAR_TIERS = [
+  [40, { fontSize: 20, lineHeight: 1.9 }],
+  [70, { fontSize: 18, lineHeight: 1.7 }],
+  [110, { fontSize: 16, lineHeight: 1.55 }],
+  [150, { fontSize: 14, lineHeight: 1.45 }],
+  [200, { fontSize: 12, lineHeight: 1.35 }],
+  [260, { fontSize: 10, lineHeight: 1.25 }],
+  [Infinity, { fontSize: 9, lineHeight: 1.2 }],
+];
+function pickTier(tiers, n) {
+  return tiers.find(([max]) => n <= max)[1];
+}
+function sizeForText(text) {
+  const byLines = pickTier(LINE_TIERS, text.split("\n").length);
+  const byChars = pickTier(CHAR_TIERS, text.length);
+  return byLines.fontSize <= byChars.fontSize ? byLines : byChars;
 }
 
 function haikuPage(entry, pageNumber) {
   const text = cleanBody(entry.body);
-  const { fontSize, lineHeight } = sizeForLineCount(text.split("\n").length);
+  const { fontSize, lineHeight } = sizeForText(text);
   return h(
     Page,
-    { size: PAGE_SIZE, style: { padding: 44, display: "flex", flexDirection: "column" } },
-    h(
-      Text,
-      { style: { fontSize: 9, letterSpacing: 1.5, color: MUTED, textTransform: "uppercase" } },
-      formatDate(entry.publishedAt)
-    ),
+    { size: PAGE_SIZE },
+    pageBorder(MUTED),
     h(
       View,
-      { style: { flex: 1, display: "flex", justifyContent: "center" } },
-      h(Text, { style: { fontFamily: "NotoSansTamil", fontSize, lineHeight, color: INK } }, text)
-    ),
-    h(Text, { style: { textAlign: "center", fontSize: 8, color: MUTED } }, String(pageNumber))
+      { style: { flex: 1, padding: 44, display: "flex", flexDirection: "column" } },
+      h(
+        View,
+        { style: { flex: 1, display: "flex", justifyContent: "center" } },
+        h(
+          Text,
+          { style: { fontFamily: "NotoSansTamil", fontSize, lineHeight, color: INK, textAlign: "center" } },
+          text
+        )
+      ),
+      h(Text, { style: { textAlign: "center", fontSize: 8, color: MUTED } }, String(pageNumber))
+    )
   );
 }
 
@@ -266,17 +332,14 @@ shuffled.forEach((entry, i) => groups[i % BOOK_COUNT].push(entry));
 for (let i = 0; i < BOOK_COUNT; i++) {
   const group = groups[i].slice().sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
   const count = group.length;
-  const dateRange = count
-    ? `${formatDate(group[0].publishedAt)} – ${formatDate(group[count - 1].publishedAt)}`
-    : "";
 
   const pages = [
-    coverPage(i, count, dateRange),
-    colophonPage(i, count, dateRange),
+    coverPage(i, count),
+    colophonPage(i, count),
     ...group.map((entry, idx) => haikuPage(entry, idx + 1)),
   ];
 
-  const doc = h(Document, { title: `${TAMIL_TITLE} — ${BOOK_LABELS[i]}`, author: "Yuvraj Sampath" }, ...pages);
+  const doc = h(Document, { title: `${BOOK_TITLE} — ${THOGUPU_LABELS[i]}`, author: "Yuvraj Sampath" }, ...pages);
   const buffer = await renderToBuffer(doc);
 
   const filePath = `books/vanambadi-book-${i + 1}.pdf`;
@@ -292,17 +355,16 @@ for (let i = 0; i < BOOK_COUNT; i++) {
     .doc(`book-${i + 1}`)
     .set({
       order: i + 1,
-      title: BOOK_LABELS[i],
-      tamilTitle: TAMIL_TITLE,
+      title: THOGUPU_LABELS[i],
+      tamilTitle: BOOK_TITLE,
       haikuCount: count,
-      dateRange,
       pdfUrl,
       pdfSizeBytes: buffer.length,
       generatedAt: Timestamp.now(),
     });
 
   console.log(
-    `${BOOK_LABELS[i]}: ${count} haiku, ${(buffer.length / 1024 / 1024).toFixed(2)} MB → ${pdfUrl}`
+    `${THOGUPU_LABELS[i]}: ${count} entries, ${(buffer.length / 1024 / 1024).toFixed(2)} MB → ${pdfUrl}`
   );
 }
 
