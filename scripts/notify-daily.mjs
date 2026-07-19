@@ -16,6 +16,7 @@ import {
   initFirestore,
   removeStaleSubscribers,
   headingFor,
+  truncateForSubject,
   entryRowHtml,
   sendDigest,
   sendTestEmail,
@@ -51,7 +52,7 @@ async function runTest(to) {
   const last = snap.docs[snap.docs.length - 1];
   const entry = { id: last.id, ...last.data() };
   const itemsHtml = entryRowHtml(entry);
-  const subject = headingFor(entry);
+  const subject = truncateForSubject(headingFor(entry));
 
   await sendTestEmail(db, { env, subject, itemsHtml, to });
 }
@@ -93,7 +94,9 @@ async function main() {
 
   const itemsHtml = entries.map(entryRowHtml).join("");
   const subject =
-    entries.length === 1 ? headingFor(entries[0]) : `${entries.length} new haiku today`;
+    entries.length === 1
+      ? truncateForSubject(headingFor(entries[0]))
+      : `${entries.length} new குறிஞ்சிட்டு today`;
 
   await sendDigest(db, { env, subject, itemsHtml });
 

@@ -58,13 +58,44 @@ export function headingFor(w) {
   return def.hasTitle && w.title ? w.title : plain.slice(0, 80);
 }
 
+// First 3 words of a heading, or up to (not including) the first comma —
+// whichever comes first — followed by "...". Used only for email subjects;
+// the full text still appears in the email body via headingFor/entryRowHtml.
+export function truncateForSubject(text) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const parts = [];
+  for (const word of words) {
+    if (parts.length >= 3) break;
+    const commaIdx = word.indexOf(",");
+    if (commaIdx !== -1) {
+      const before = word.slice(0, commaIdx);
+      if (before) parts.push(before);
+      break;
+    }
+    parts.push(word);
+  }
+  return `${parts.join(" ")}...`;
+}
+
+const POSTED_DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "Asia/Kolkata",
+});
+
+function formatPostedDate(publishedAt) {
+  return POSTED_DATE_FMT.format(new Date(`${publishedAt}T12:00:00Z`));
+}
+
 export function entryRowHtml(w) {
   const def = CATEGORY_LABELS[w.category] ?? CATEGORY_LABELS.daily;
   const heading = headingFor(w);
   const url = `${SITE_URL}/${w.category}/${w.id}`;
+  const label = w.category === "daily" ? formatPostedDate(w.publishedAt) : def.english;
   return `
     <tr><td style="padding:20px 0;border-top:1px solid #e4ddd1;">
-      <p style="margin:0 0 4px;font:12px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6b5d4f;">${escapeHtml(def.english)}</p>
+      <p style="margin:0 0 4px;font:12px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6b5d4f;">${escapeHtml(label)}</p>
       <p style="margin:0 0 8px;font:20px/1.4 Georgia,serif;color:#201811;">${escapeHtml(heading)}</p>
       <a href="${url}" style="font:14px system-ui,sans-serif;color:#c1652a;">Read →</a>
     </td></tr>`;

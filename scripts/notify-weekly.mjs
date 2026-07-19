@@ -51,7 +51,7 @@ function buildSections(entries) {
   const others = entries.filter((w) => w.category !== "daily");
   let itemsHtml = "";
   if (haiku.length) {
-    itemsHtml += sectionHeaderHtml("This week's haiku") + haiku.map(entryRowHtml).join("");
+    itemsHtml += sectionHeaderHtml("This week's குறிஞ்சிட்டு") + haiku.map(entryRowHtml).join("");
   }
   if (others.length) {
     itemsHtml += sectionHeaderHtml("Also published this week") + others.map(entryRowHtml).join("");
