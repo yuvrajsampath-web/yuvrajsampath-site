@@ -45,7 +45,6 @@ export default async function BooksPage() {
                   </p>
                   <p className="text-[0.65rem] tracking-[0.2em] text-[#fff8ee]/85">{book.title}</p>
                   <div className="h-px w-10 bg-[#fff8ee]/60" />
-                  <p className="text-[0.65rem] text-[#fff8ee]/75">{book.haikuCount} குறிஞ்சிட்டு</p>
                 </div>
               </a>
               <a

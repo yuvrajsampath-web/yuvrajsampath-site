@@ -90,8 +90,34 @@ const LINE = "#e4ddd1";
 // Same recurring sign-off stripped from the email digests (see
 // scripts/lib/notify-common.mjs) — not part of the poem itself.
 const DAILY_SIGNOFF = /காலை\s+வணக்கம்[.\s]*/g;
+
+// Break after every comma or ellipsis (2+ dots) within a line, a natural
+// pause point for these short-line poems, while leaving blank stanza-gap
+// lines alone (handled separately by normalizeBlankLines).
+function expandPunctuationBreaks(text) {
+  return text
+    .split("\n")
+    .flatMap((line) => {
+      if (line.trim() === "") return [""];
+      return line
+        .replace(/([,]|\.{2,})\s*/g, "$1\n")
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+    })
+    .join("\n");
+}
+
+// The author sometimes leaves one blank line between stanzas, sometimes
+// two or three inconsistently — collapse any run down to a single blank
+// line so spacing reads the same throughout every book.
+function normalizeBlankLines(text) {
+  return text.replace(/\n{3,}/g, "\n\n");
+}
+
 function cleanBody(raw) {
-  return raw.replace(DAILY_SIGNOFF, "").trim();
+  const signoffStripped = raw.replace(DAILY_SIGNOFF, "").trim();
+  return expandPunctuationBreaks(normalizeBlankLines(signoffStripped));
 }
 
 // Deterministic shuffle (mulberry32) so re-running the script without new
@@ -113,32 +139,33 @@ function seededShuffle(arr, seed) {
   return out;
 }
 
-// A small two-arc "bird in flight" doodle, centered at (cx, y).
-function birdMotif(cx, y, color) {
-  const half = 13;
-  return h(Path, {
-    d: `M ${cx - half * 2} ${y + 5} Q ${cx - half} ${y - 6} ${cx} ${y + 5} Q ${cx + half} ${y - 6} ${cx + half * 2} ${y + 5}`,
-    stroke: color,
-    strokeWidth: 1.3,
-    fill: "none",
-  });
-}
+// A small flying-bird silhouette (generic bird-in-flight glyph).
+const BIRD_PATH =
+  "M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z";
 
-// Thin frame inset from the page edge, with the bird motif perched above
-// the top line — same treatment on every interior page.
+// Thin frame inset from the page edge, with the bird motif perched in the
+// bottom-right corner — same treatment on every interior page.
 function pageBorder(color) {
   const inset = 20;
   const width = PAGE_SIZE[0] - inset * 2;
   const height = PAGE_SIZE[1] - inset * 2;
   return h(
-    Svg,
-    { style: { position: "absolute", width: "100%", height: "100%" } },
-    h(Rect, { x: inset, y: inset, width, height, stroke: color, strokeWidth: 0.75, fill: "none" }),
-    birdMotif(PAGE_SIZE[0] / 2, inset - 9, color)
+    React.Fragment,
+    null,
+    h(
+      Svg,
+      { style: { position: "absolute", width: "100%", height: "100%" } },
+      h(Rect, { x: inset, y: inset, width, height, stroke: color, strokeWidth: 0.75, fill: "none" })
+    ),
+    h(
+      Svg,
+      { viewBox: "0 0 24 24", style: { position: "absolute", width: 18, height: 18, right: 26, bottom: 26 } },
+      h(Path, { d: BIRD_PATH, fill: color })
+    )
   );
 }
 
-function coverPage(index, count) {
+function coverPage(index) {
   return h(
     Page,
     { size: PAGE_SIZE },
@@ -201,21 +228,7 @@ function coverPage(index, count) {
         },
         THOGUPU_LABELS[index]
       ),
-      h(View, { style: { marginTop: 24, width: 60, height: 1, backgroundColor: CREAM, opacity: 0.6 } }),
-      h(
-        Text,
-        {
-          style: {
-            fontFamily: "NotoSansTamil",
-            marginTop: 16,
-            fontSize: 9,
-            color: CREAM,
-            opacity: 0.85,
-            letterSpacing: 1,
-          },
-        },
-        `${count} குறிஞ்சிட்டு`
-      )
+      h(View, { style: { marginTop: 24, width: 60, height: 1, backgroundColor: CREAM, opacity: 0.6 } })
     ),
     h(
       Text,
@@ -237,7 +250,7 @@ function coverPage(index, count) {
   );
 }
 
-function colophonPage(index, count) {
+function colophonPage(index) {
   return h(
     Page,
     { size: PAGE_SIZE },
@@ -255,48 +268,24 @@ function colophonPage(index, count) {
       h(
         Text,
         { style: { fontFamily: "NotoSansTamil", marginTop: 20, fontSize: 10, color: MUTED, lineHeight: 1.6 } },
-        `${count} குறிஞ்சிட்டு by Yuvraj Sampath.`
+        "A collection of குறிஞ்சிட்டு by Yuvraj Sampath."
       )
     )
   );
 }
 
-// Keeps "one poem, one page" on the fixed landscape page (much less
-// vertical room than a portrait layout) even for outlier entries. Two
-// independent failure modes need covering: many short explicit line
-// breaks (stanza gaps stack up vertically even though the text itself is
-// short) and a single long unbroken line (wraps and eats width instead of
-// height) — so this picks whichever tier is more conservative for each,
-// verified empirically against every real entry with no overflow left
-// (see the diagnose-overflow*.mjs throwaway scripts used during tuning).
-const LINE_TIERS = [
-  [4, { fontSize: 20, lineHeight: 1.9 }],
-  [6, { fontSize: 18, lineHeight: 1.7 }],
-  [9, { fontSize: 15, lineHeight: 1.55 }],
-  [12, { fontSize: 13, lineHeight: 1.45 }],
-  [Infinity, { fontSize: 11, lineHeight: 1.35 }],
-];
-const CHAR_TIERS = [
-  [40, { fontSize: 20, lineHeight: 1.9 }],
-  [70, { fontSize: 18, lineHeight: 1.7 }],
-  [110, { fontSize: 16, lineHeight: 1.55 }],
-  [150, { fontSize: 14, lineHeight: 1.45 }],
-  [200, { fontSize: 12, lineHeight: 1.35 }],
-  [260, { fontSize: 10, lineHeight: 1.25 }],
-  [Infinity, { fontSize: 9, lineHeight: 1.2 }],
-];
-function pickTier(tiers, n) {
-  return tiers.find(([max]) => n <= max)[1];
-}
-function sizeForText(text) {
-  const byLines = pickTier(LINE_TIERS, text.split("\n").length);
-  const byChars = pickTier(CHAR_TIERS, text.length);
-  return byLines.fontSize <= byChars.fontSize ? byLines : byChars;
-}
+// Fixed size for every entry — longer poems wrap naturally within the
+// page instead of shrinking to fit. 12/1.35 was chosen empirically: it's
+// the largest size at which every one of the 596 real entries still fits
+// on a single page after punctuation-break expansion and blank-line
+// normalization (larger sizes started spilling a handful of outliers onto
+// a second physical page — react-pdf would continue them there rather
+// than clip anything, but one-page-per-poem stays cleaner where free).
+const HAIKU_FONT_SIZE = 12;
+const HAIKU_LINE_HEIGHT = 1.35;
 
 function haikuPage(entry, pageNumber) {
   const text = cleanBody(entry.body);
-  const { fontSize, lineHeight } = sizeForText(text);
   return h(
     Page,
     { size: PAGE_SIZE },
@@ -309,7 +298,15 @@ function haikuPage(entry, pageNumber) {
         { style: { flex: 1, display: "flex", justifyContent: "center" } },
         h(
           Text,
-          { style: { fontFamily: "NotoSansTamil", fontSize, lineHeight, color: INK, textAlign: "center" } },
+          {
+            style: {
+              fontFamily: "NotoSansTamil",
+              fontSize: HAIKU_FONT_SIZE,
+              lineHeight: HAIKU_LINE_HEIGHT,
+              color: INK,
+              textAlign: "left",
+            },
+          },
           text
         )
       ),
@@ -334,8 +331,8 @@ for (let i = 0; i < BOOK_COUNT; i++) {
   const count = group.length;
 
   const pages = [
-    coverPage(i, count),
-    colophonPage(i, count),
+    coverPage(i),
+    colophonPage(i),
     ...group.map((entry, idx) => haikuPage(entry, idx + 1)),
   ];
 
