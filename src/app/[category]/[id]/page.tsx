@@ -75,10 +75,20 @@ export default async function CategoryIdPage({
           ← {def.tamil}
         </Link>
 
-        <p className="mt-6 text-xs tracking-[0.2em] uppercase text-muted tabular-nums">
-          {formatDate(writing.publishedAt, "long")}
-          {writing.topic ? ` · ${writing.topic}` : ""}
-        </p>
+        <div className="mt-6 flex items-start justify-between gap-4">
+          <p className="text-xs tracking-[0.2em] uppercase text-muted tabular-nums">
+            {formatDate(writing.publishedAt, "long")}
+            {writing.topic ? ` · ${writing.topic}` : ""}
+          </p>
+          {newer && (
+            <Link
+              href={`/${def.slug}/${newer.id}`}
+              className="shrink-0 text-xs text-muted hover:text-amber transition-colors"
+            >
+              Next →
+            </Link>
+          )}
+        </div>
         {def.hasTitle && writing.title && (
           <h1 className="mt-2 font-display text-3xl sm:text-4xl text-balance">{writing.title}</h1>
         )}
@@ -92,10 +102,6 @@ export default async function CategoryIdPage({
           />
         )}
 
-        {writing.audioUrl && (
-          <audio controls src={writing.audioUrl} className="mt-6 w-full" />
-        )}
-
         <div className="mt-8">
           {def.format === "rich" ? (
             <RichBody html={writing.body} />
@@ -105,6 +111,10 @@ export default async function CategoryIdPage({
             </p>
           )}
         </div>
+
+        {writing.audioUrl && (
+          <audio controls src={writing.audioUrl} className="mt-8 w-full" />
+        )}
 
         {(older || newer) && (
           <nav className="mt-12 flex items-center justify-between border-t border-line pt-6 text-sm">
