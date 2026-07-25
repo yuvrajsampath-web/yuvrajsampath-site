@@ -9,11 +9,17 @@ export default function NarratePage() {
   const [writings, setWritings] = useState<Writing[] | null>(null);
   const [narrations, setNarrations] = useState<Narration[]>([]);
   const [filter, setFilter] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
-    const [w, n] = await Promise.all([listWritings(), listNarrations()]);
-    setWritings(w.filter((x) => x.category === "daily"));
-    setNarrations(n);
+    setError(null);
+    try {
+      const [w, n] = await Promise.all([listWritings(), listNarrations()]);
+      setWritings(w.filter((x) => x.category === "daily"));
+      setNarrations(n);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   useEffect(() => {
@@ -47,8 +53,13 @@ export default function NarratePage() {
         className="w-full rounded-md border border-line bg-surface px-3 py-2"
       />
 
-      {filtered === null && <p className="text-muted">Loading…</p>}
-      {filtered?.length === 0 && <p className="text-muted">No entries match.</p>}
+      {error && (
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          Couldn&apos;t load entries: {error}
+        </p>
+      )}
+      {!error && filtered === null && <p className="text-muted">Loading…</p>}
+      {!error && filtered?.length === 0 && <p className="text-muted">No entries match.</p>}
 
       <ul className="divide-y divide-line border-t border-b border-line">
         {filtered?.map((w) => (

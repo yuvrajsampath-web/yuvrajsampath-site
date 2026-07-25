@@ -9,11 +9,17 @@ export default function CuratePage() {
   const [filter, setFilter] = useState("");
   const [pending, setPending] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
-    const all = await listWritings();
-    setWritings(all.filter((w) => w.category === "daily"));
-    setPending({});
+    setError(null);
+    try {
+      const all = await listWritings();
+      setWritings(all.filter((w) => w.category === "daily"));
+      setPending({});
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   useEffect(() => {
@@ -45,9 +51,12 @@ export default function CuratePage() {
 
   async function handleSave() {
     setSaving(true);
+    setError(null);
     try {
       await Promise.all(changedIds.map((id) => updateWriting(id, { bookIncluded: pending[id] })));
       await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
@@ -82,8 +91,13 @@ export default function CuratePage() {
         </button>
       </div>
 
-      {filtered === null && <p className="text-muted">Loading…</p>}
-      {filtered?.length === 0 && <p className="text-muted">No entries match.</p>}
+      {error && (
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {error}
+        </p>
+      )}
+      {!error && filtered === null && <p className="text-muted">Loading…</p>}
+      {!error && filtered?.length === 0 && <p className="text-muted">No entries match.</p>}
 
       <ul className="divide-y divide-line border-t border-b border-line">
         {filtered?.map((w) => (
