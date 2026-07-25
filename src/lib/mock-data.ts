@@ -55,6 +55,15 @@ export const MOCK_WRITINGS: Writing[] = [
     publishedAt: "2026-04-01",
     createdAt: "2026-04-01T09:00:00.000Z",
   },
+  {
+    id: "naganavai-1",
+    category: "naganavai",
+    body: "மலை மூடும் மூடுபனி\nபாதை தெரியவில்லை\nநம்பிக்கை நடக்கிறது",
+    language: "ta",
+    audioUrl: "#",
+    publishedAt: "2026-07-20",
+    createdAt: "2026-07-20T09:00:00.000Z",
+  },
 ];
 
 export const MOCK_MEDIA: MediaEntry[] = [
@@ -76,15 +85,6 @@ export const MOCK_MEDIA: MediaEntry[] = [
   },
 ];
 
-export const MOCK_BOOKS: Book[] = [
-  {
-    id: "book-1",
-    order: 1,
-    title: "தொகுப்பு 1",
-    tamilTitle: "சிந்தித்து பாருங்கள்",
-    haikuCount: 2,
-    pdfUrl: "#",
-    pdfSizeBytes: 0,
-    generatedAt: "2026-07-19T00:00:00.000Z",
-  },
-];
+// Empty for now — the author curates each volume from the portal (see
+// src/app/tirupur/curate) rather than every daily entry being auto-compiled.
+export const MOCK_BOOKS: Book[] = [];

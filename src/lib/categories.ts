@@ -1,4 +1,4 @@
-export type CategorySlug = "daily" | "poetry" | "essay" | "shortstory";
+export type CategorySlug = "daily" | "poetry" | "essay" | "shortstory" | "naganavai";
 
 export type ContentFormat = "plain" | "rich";
 
@@ -79,6 +79,18 @@ export const CATEGORIES: CategoryDef[] = [
     format: "rich",
     topicIndexed: false,
     hasTitle: true,
+    paginated: false,
+    hasAudio: true,
+  },
+  {
+    slug: "naganavai",
+    tamil: "நாகணவாய்",
+    transliteration: "Naganavai",
+    english: "Narration",
+    birdMeaning: "the shama, known for its melodious song — குறிஞ்சிட்டு read aloud in the author's own voice",
+    format: "plain",
+    topicIndexed: false,
+    hasTitle: false,
     paginated: false,
     hasAudio: true,
   },

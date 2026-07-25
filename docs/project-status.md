@@ -28,14 +28,16 @@ reference.
 ## Current state (as of the last session)
 
 The site is **live, stable, and feature-complete** at yuvrajsampath.com. The
-author can independently: write/edit/delete entries in all 5 writing
-categories plus media, upload cover images and (for stories) audio
+author can independently: write/edit/delete entries in all 6 writing
+categories plus media, upload cover images and (for stories/narrations) audio
 recordings, and import `.docx`/`.pdf` files into the rich editor. Email
 subscribers get a daily குறிஞ்சிட்டு digest plus a Sunday weekly recap of
 everything else, both via Resend/GitHub Actions with auto-unsubscribe for
-inactivity (see "Subscriber digest overhaul" below). There's also now a
-Books section (`/books`, வானம்பாடி) with three compiled PDF volumes of
-daily entries (see "Added a Books section" below).
+inactivity (see "Subscriber digest overhaul" below). There's also a Books
+section (`/books`, வானம்பாடி) — currently empty, now author-curated rather
+than auto-compiled (see "Book curation + voice narration" below) — and a
+நாகணவாய் (Naganavai) category of daily entries the author has read aloud
+himself, published via the portal's new Narrate page.
 
 **Known gaps, not bugs:**
 - The About page (`src/app/about/page.tsx`) still has four placeholder bio
@@ -255,6 +257,62 @@ About page's `metadata.description`. The About page's placeholder draft
 text (still-unfilled bio section mentioning "sustainability advocacy") was
 deliberately left alone — it's draft/placeholder copy waiting on the
 author's real text, not the tagline itself.
+
+## Book curation + voice narration (நாகணவாய்): portal self-service replaces the auto-generated books (2026-07-25)
+
+The Books section previously auto-compiled *every* குறிஞ்சிட்டு entry into 3
+fixed volumes on each manual script run — the author had no say in what went
+into a book, and no way to trigger it himself without GitHub access. Two new
+`/tirupur` pages replace that with an author-driven flow, and a new type
+scaffold from an earlier, uncommitted session (`Writing.bookIncluded`, the
+`Narration` type, and the `naganavai` category) was picked up and finished
+rather than redesigned from scratch:
+
+- **`/tirupur/curate`**: lists all குறிஞ்சிட்டு (`daily`) entries with a
+  filter box and a checkbox per entry bound to `Writing.bookIncluded`, saved
+  diff-only (only rows actually toggled get written) via the existing
+  `updateWriting`. It does **not** generate a PDF — `scripts/generate-books.mjs`
+  now adds `.filter(w => w.bookIncluded === true)` to its selection, so
+  running the existing "Generate books" GitHub Action (still manual,
+  `workflow_dispatch`, still someone-with-GitHub-access-only) compiles
+  whatever the author has currently flagged. This was a deliberate scope
+  decision, not a shortcut: a fully self-serve "click publish, get a PDF
+  immediately" flow was considered (a new authenticated Vercel API route
+  running the `@react-pdf/renderer` logic server-side) but rejected in favor
+  of the much smaller manual-trigger change — see the plan file from this
+  session if the self-serve version is wanted later.
+- **`/tirupur/narrate`** (நாகணவாய், "the shama, known for its melodious
+  song"): lists every `daily` entry with an inline recorder
+  (`src/components/portal/NarrationItem.tsx`, `MediaRecorder` +
+  `getUserMedia`) — record, replay, re-record, or save. A saved recording is
+  stored in a new `narrations` Firestore collection (doc id == the source
+  entry's id, `status: "recorded"`) until the author clicks "Approve &
+  publish," which creates a **new**, separate `Writing` under the new
+  `naganavai` category (the original `daily` entry is left untouched — this
+  is a second posting of the same text with audio attached, not a move) and
+  flips the narration to `status: "approved"`. Every row also has a Delete
+  button (existing `deleteWriting`) so the author can prune haiku he doesn't
+  want published at all, from the same page.
+- The 3 previously-generated book volumes (`books/book-1/2/3` in Firestore,
+  `books/vanambadi-book-{1,2,3}.pdf` in Storage) were deleted outright, and
+  `getBooks()` in `src/lib/data.ts` no longer falls back to mock data on a
+  genuinely empty `books` collection (it used to, which would have silently
+  shown a fake placeholder book instead of the real "nothing published yet"
+  empty state) — `/books` now correctly shows empty until the author curates
+  and someone runs the generation workflow again.
+- New Firestore rule: `match /narrations/{docId} { allow read, write: if
+  isAuthor(); }` in `firestore.rules` — **needs the usual manual paste into
+  the Firebase console**, the CLI publish path is still broken on this
+  project (see "Working conventions" below). Voice-note audio reuses the
+  existing `audio/` Storage path and rule (author-writable, same as
+  short-story audio uploads) — no `storage.rules` change was needed.
+- `audioContentType()` (the workaround for browsers mis-tagging audio-only
+  `.mp4`/`.m4a` as `video/mp4`) moved from `WritingForm.tsx` into
+  `src/lib/audio.ts` so `NarrationItem.tsx` could reuse it — recorder blobs
+  get a synthetic filename derived from `MediaRecorder`'s `mimeType` (e.g.
+  `audio/webm` → `recording.webm`) specifically so this shared helper stays
+  the single place that decides upload content-type, rather than trusting
+  `Blob.type` directly in one path and the extension in another.
 
 ## Working conventions established on this project
 

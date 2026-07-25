@@ -161,6 +161,7 @@ export default function ArchitecturePage() {
                   ["poetry", "முருகு சிட்டு", "plain", "yes", "no", "no"],
                   ["essay", "அன்னம்", "rich", "yes", "no", "no"],
                   ["shortstory", "சிறு மயில்", "rich", "yes", "no", "yes"],
+                  ["naganavai", "நாகணவாய்", "plain", "no", "no", "yes"],
                 ].map((row) => (
                   <tr key={row[0]} className="border-b border-line">
                     <td className="py-2 pr-4 font-mono text-xs">{row[0]}</td>
@@ -178,6 +179,12 @@ export default function ArchitecturePage() {
             Media (podcasts/videos, குயில்) is a separate Firestore collection/type, not a
             sixth category — it has a <Pill>kind</Pill> (<Pill>podcast</Pill>/<Pill>video</Pill>
             ), a <Pill>url</Pill>, and an optional description.
+          </p>
+          <p>
+            <Pill>naganavai</Pill> entries are never authored directly — they&apos;re created by
+            approving a recording on the Narrate page (see below), which copies a{" "}
+            <Pill>daily</Pill> entry&apos;s text alongside the author&apos;s own reading of it.
+            The source <Pill>daily</Pill> entry is left in place.
           </p>
         </Section>
 
@@ -221,6 +228,8 @@ export default function ArchitecturePage() {
 /${PORTAL_PATH}/writings/[id]/edit    Edit a writing
 /${PORTAL_PATH}/media/new             New podcast/video
 /${PORTAL_PATH}/media/[id]/edit       Edit a media entry
+/${PORTAL_PATH}/curate                Select entries for the next book
+/${PORTAL_PATH}/narrate               Record voice notes, delete daily entries
 /${PORTAL_PATH}/architecture          This page
 
 /api/subscribe · /api/unsubscribe · /api/webhooks/resend`}
@@ -243,6 +252,15 @@ export default function ArchitecturePage() {
             Publishing flow: the writing form → optional cover image / audio upload straight to
             Firebase Storage from the browser → the Firestore document is written directly from
             the browser, under Auth + rules, with no server in between.
+          </p>
+          <p>
+            <strong className="text-ink">Curate</strong> toggles <Pill>bookIncluded</Pill> on{" "}
+            <Pill>daily</Pill> entries only — it doesn&apos;t generate a PDF itself; that still
+            needs a manual run of the &quot;Generate books&quot; GitHub Action.{" "}
+            <strong className="text-ink">Narrate</strong> lets the author record a voice note per
+            entry (<Pill>MediaRecorder</Pill>, saved to a separate <Pill>narrations</Pill>{" "}
+            collection until approved) and delete entries outright — approving creates a new{" "}
+            <Pill>naganavai</Pill> entry rather than modifying the original.
           </p>
         </Section>
 

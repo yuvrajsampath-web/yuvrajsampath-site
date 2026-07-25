@@ -318,9 +318,10 @@ function haikuPage(entry, pageNumber) {
 const snap = await db.collection("writings").where("category", "==", "daily").get();
 const all = snap.docs
   .map((d) => ({ id: d.id, ...d.data() }))
-  .filter((w) => w.body && cleanBody(w.body).length > 0);
+  .filter((w) => w.body && cleanBody(w.body).length > 0)
+  .filter((w) => w.bookIncluded === true);
 
-console.log(`Fetched ${all.length} daily entries with content.`);
+console.log(`Fetched ${all.length} author-curated daily entries (bookIncluded === true).`);
 
 const shuffled = seededShuffle(all, 20260719);
 const groups = Array.from({ length: BOOK_COUNT }, () => []);

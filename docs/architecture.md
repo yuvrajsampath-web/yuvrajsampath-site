@@ -77,6 +77,13 @@ never raw field presence.**
 | `poetry` | முருகு சிட்டு | a bird beautiful enough for verse | plain | yes | no | no | no |
 | `essay` | அன்னம் | the noble freshwater bird | rich | yes | no | no | no |
 | `shortstory` | சிறு மயில் | the small peacock | rich | yes | no | no | **yes** |
+| `naganavai` | நாகணவாய் | the shama, known for its melodious song | plain | no | no | no | **yes** |
+
+`naganavai` entries are never created directly through `WritingForm` — they're
+published by approving a recording in the portal's Narrate page (see below),
+which copies a `daily` entry's text alongside the author's own recording of
+it. The source `daily` entry is left in place; approving creates a second,
+separate `Writing`, it doesn't move or replace the original.
 
 Media (podcasts/videos, குயில்) is a **separate** Firestore collection and
 type (`MediaEntry`), not a sixth entry in `CATEGORIES` — it has no title/body
@@ -139,6 +146,8 @@ appear until the next deploy.
 /tirupur/writings/[id]/edit    Edit an existing writing
 /tirupur/media/new             New podcast/video entry
 /tirupur/media/[id]/edit       Edit a media entry
+/tirupur/curate                Select which daily entries go in the next book
+/tirupur/narrate               Record/approve voice notes, delete daily entries
 
 /api/subscribe                 POST — add an email subscriber
 /api/unsubscribe                GET — one-click unsubscribe link target
@@ -168,6 +177,26 @@ straight to Firebase Storage from the browser (Client SDK) → `createWriting`
 / `updateWriting` (`src/lib/portal-data.ts`) writes the Firestore document
 directly from the browser, under Auth + rules, with **no server in
 between**. This is what keeps the whole publishing path off Cloud Functions.
+
+Two more portal pages follow this same "browser writes Firestore directly"
+pattern, both scoped to `daily` entries:
+
+- **`/tirupur/curate`** lets the author check off which `daily` entries have
+  `bookIncluded: true`. It only ever toggles that one field — it does not
+  generate anything. Producing an actual book PDF from the flagged entries is
+  still a manual step: someone with GitHub access runs the "Generate books"
+  workflow (`scripts/generate-books.mjs`, now filtered to
+  `bookIncluded === true`), same as before this feature existed.
+- **`/tirupur/narrate`** lists every `daily` entry with an inline recorder
+  (`MediaRecorder` + `getUserMedia`, `NarrationItem.tsx`) so the author can
+  read one aloud, replay it, and either re-record or save it. A saved
+  recording lives in a separate `narrations` collection (doc id == the
+  source `Writing`'s id, `status: "recorded"`) until the author clicks
+  "Approve & publish," which creates a *new* `Writing` under `naganavai`
+  (the original `daily` entry is untouched) and flips the narration to
+  `status: "approved"`. The same page's Delete button
+  (`deleteWriting`) permanently removes a `daily` entry — unrelated to
+  narration, just co-located since both are "manage this haiku" actions.
 
 Two extras worth knowing about:
 - **File import** (`.docx` via `mammoth`, `.pdf` via `pdfjs-dist`) — both

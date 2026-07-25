@@ -16,6 +16,13 @@ service cloud.firestore {
     match /media/{docId} {
       allow read, write: if isAuthor();
     }
+    // Pending/recorded voice narrations, managed directly from the portal
+    // (see src/app/tirupur/narrate). On approval a real Writing is created
+    // under the "naganavai" category — this collection itself is never read
+    // publicly.
+    match /narrations/{docId} {
+      allow read, write: if isAuthor();
+    }
     // Subscriber emails: written only via /api/subscribe (Admin SDK, bypasses
     // these rules) so visitors can never read the list or spoof entries —
     // this rule is a deliberate deny-all, not an oversight.

@@ -9,34 +9,10 @@ import { createWriting, updateWriting } from "@/lib/portal-data";
 import type { Writing } from "@/lib/types";
 import { RichEditor } from "./RichEditor";
 import { PORTAL_PATH } from "@/lib/portal-config";
+import { audioContentType } from "@/lib/audio";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
-}
-
-/**
- * Browsers/OSes often tag audio-only .mp4/.m4a files (common from WhatsApp
- * and voice recorder exports) as "video/mp4", which makes <audio> refuse to
- * play them. Force a real audio content type from the extension instead of
- * trusting file.type.
- */
-function audioContentType(fileName: string, fallbackType: string): string {
-  const ext = fileName.toLowerCase().split(".").pop() ?? "";
-  const byExt: Record<string, string> = {
-    mp3: "audio/mpeg",
-    mp4: "audio/mp4",
-    m4a: "audio/mp4",
-    wav: "audio/wav",
-    ogg: "audio/ogg",
-    oga: "audio/ogg",
-    webm: "audio/webm",
-    aac: "audio/aac",
-    flac: "audio/flac",
-    amr: "audio/amr",
-  };
-  if (byExt[ext]) return byExt[ext];
-  if (fallbackType.startsWith("audio/")) return fallbackType;
-  return "audio/mpeg";
 }
 
 export function WritingForm({

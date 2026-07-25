@@ -13,6 +13,18 @@ export function PortalHeader() {
       </Link>
       <div className="flex items-center gap-5">
         <Link
+          href={`/${PORTAL_PATH}/curate`}
+          className="text-sm text-muted hover:text-amber transition-colors"
+        >
+          Curate
+        </Link>
+        <Link
+          href={`/${PORTAL_PATH}/narrate`}
+          className="text-sm text-muted hover:text-amber transition-colors"
+        >
+          Narrate
+        </Link>
+        <Link
           href={`/${PORTAL_PATH}/architecture`}
           className="text-sm text-muted hover:text-amber transition-colors"
         >

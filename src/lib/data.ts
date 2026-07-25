@@ -126,7 +126,9 @@ export const getBooks = cache(async (): Promise<Book[]> => {
 
   return withAdmin(fallback, async (db) => {
     const snap = await db.collection("books").orderBy("order", "asc").get();
-    if (snap.empty) return fallback;
+    // Unlike the other get* functions above, an empty result here is a real,
+    // valid state (no books curated/generated yet) rather than "not
+    // connected" — don't fall back to mock data on empty.
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Book);
   });
 });

@@ -10,13 +10,15 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase/client";
-import type { MediaEntry, Writing } from "./types";
+import type { MediaEntry, Narration, Writing } from "./types";
 
 const writingsCol = () => collection(db, "writings");
 const mediaCol = () => collection(db, "media");
+const narrationsCol = () => collection(db, "narrations");
 
 export async function listWritings(): Promise<Writing[]> {
   const snap = await getDocs(query(writingsCol(), orderBy("publishedAt", "desc")));
@@ -28,8 +30,9 @@ export async function getWritingById(id: string): Promise<Writing | null> {
   return snap.exists() ? ({ id: snap.id, ...snap.data() } as Writing) : null;
 }
 
-export async function createWriting(data: Omit<Writing, "id" | "createdAt">) {
-  await addDoc(writingsCol(), { ...data, createdAt: serverTimestamp() });
+export async function createWriting(data: Omit<Writing, "id" | "createdAt">): Promise<string> {
+  const ref = await addDoc(writingsCol(), { ...data, createdAt: serverTimestamp() });
+  return ref.id;
 }
 
 export async function updateWriting(id: string, data: Partial<Omit<Writing, "id">>) {
@@ -60,4 +63,18 @@ export async function updateMedia(id: string, data: Partial<Omit<MediaEntry, "id
 
 export async function deleteMedia(id: string) {
   await deleteDoc(doc(mediaCol(), id));
+}
+
+export async function listNarrations(): Promise<Narration[]> {
+  const snap = await getDocs(narrationsCol());
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Narration);
+}
+
+// Doc id is always the source Writing's id (one narration per haiku, at most).
+export async function setNarration(id: string, data: Partial<Omit<Narration, "id">>) {
+  await setDoc(doc(narrationsCol(), id), data, { merge: true });
+}
+
+export async function deleteNarration(id: string) {
+  await deleteDoc(doc(narrationsCol(), id));
 }
