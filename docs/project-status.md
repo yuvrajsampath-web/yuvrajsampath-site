@@ -376,6 +376,44 @@ firestore:rules,storage:rules` call still fails — run the two separately.)
 Not clear when this got fixed or why; worth relying on it going forward but
 still sanity-checking a rules change actually took effect, same as always.
 
+## Gallery lightbox + குறிஞ்சிட்டு backfill from WhatsApp export (2026-08-01)
+
+- **Click a gallery photo to view it full size, click again to close.**
+  `GalleryPhotoCard.tsx` — small client component wrapping each grid item so
+  `/gallery` itself stays a server component; toggles a fixed full-viewport
+  overlay showing the same image large.
+- **Confirmed the real portal write path works**: while testing the new
+  Gallery feature, a second photo appeared in the `gallery` collection
+  uploaded through the actual live `/tirupur/gallery/new` page (real
+  Firebase Auth, not a bypass) — storage path and filename match a real
+  upload, not anything the assistant wrote via script. Its date landed as
+  **1999-08-01** and caption as "Book launch event." (trailing period) —
+  looks like a typo, left untouched rather than "fixed" unilaterally since
+  it's someone else's real action. Worth cleaning up (or confirming
+  intentional) next session if still there.
+- **குறிஞ்சிட்டு backfill**: the author provided a full WhatsApp export
+  (`Good_Morning_Messages.docx`, 14 May 2024 – 26 Jul 2026, 806 posts).
+  Parsed with `mammoth.extractRawText()`, split on date-header lines
+  (mixed full/abbreviated month names in the source — e.g. "14 May 2024"
+  vs "1 Jun 2026", both had to be handled), grouped by calendar date since
+  some days had multiple WhatsApp posts (a real poem plus, some days, an
+  unrelated video announcement or blog-promo message — resolved by
+  preferring whichever post that day contains a காலை வணக்கம்-family
+  sign-off). Diffed against the 615 existing `daily` Firestore docs by
+  `publishedAt`; **existing site entries were never touched** (site wins on
+  any conflict, per instruction) — only 147 genuinely missing dates were
+  added (mostly 14 May – 21 Sep 2024, before the site's archive begins,
+  plus ~20 scattered gaps later), bringing the total to 762. Two borderline
+  WhatsApp posts (a blog-promo message, a one-line "Hi from Kuala Lumpur"
+  greeting) were deliberately excluded as not real daily-poem content, and
+  34 more dates in the export have no importable text at all (WhatsApp's
+  "image omitted" placeholder, no caption) — those remain gaps, unfillable
+  without the original images. One included entry (2024-06-05) is atypical
+  content (a YouTuber/election comment) but the author explicitly labeled
+  it "இன்றைய காலை வணக்க செய்தி" himself, so it was kept. Import was a
+  one-off Admin SDK script (not committed), same pattern as other bulk
+  content additions this project.
+
 ## Working conventions established on this project
 
 - **Verification sequence before calling anything done:** `npm run lint` →
