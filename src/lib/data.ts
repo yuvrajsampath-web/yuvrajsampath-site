@@ -62,7 +62,9 @@ export const getArchive = cache(async (category: CategorySlug): Promise<Writing[
       .where("category", "==", category)
       .orderBy("publishedAt", "desc")
       .get();
-    if (snap.empty) return fallback;
+    // An empty result here is a real, valid state (category has no entries
+    // yet) rather than "not connected" — don't fall back to mock data on
+    // empty (see getBooks()).
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Writing);
   });
 });
