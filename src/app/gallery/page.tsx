@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { GalleryPhotoCard } from "@/components/GalleryPhotoCard";
 import { getGalleryPhotos } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -34,16 +35,7 @@ export default async function GalleryPage() {
         <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2">
           {photos.length === 0 && <li className="text-muted">Nothing published here yet.</li>}
           {photos.map((photo) => (
-            <li key={photo.id} className="flex flex-col">
-              <div className="overflow-hidden rounded-md border border-line shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.imageUrl} alt={photo.caption} className="block w-full h-auto" />
-              </div>
-              <p className="mt-3">{photo.caption}</p>
-              <p className="text-xs tracking-[0.15em] uppercase text-muted tabular-nums">
-                {formatDate(photo.publishedAt)}
-              </p>
-            </li>
+            <GalleryPhotoCard key={photo.id} photo={photo} formattedDate={formatDate(photo.publishedAt)} />
           ))}
         </ol>
       </main>
