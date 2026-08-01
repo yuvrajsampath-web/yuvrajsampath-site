@@ -352,7 +352,10 @@ for (let i = 0; i < BOOK_COUNT; i++) {
     .collection("books")
     .doc(`book-${i + 1}`)
     .set({
-      order: i + 1,
+      // Offset past the author's manually-added "published" books (see
+      // src/lib/types.ts Book) so a re-run never interleaves with those.
+      order: 100 + i,
+      kind: "compilation",
       title: THOGUPU_LABELS[i],
       tamilTitle: BOOK_TITLE,
       haikuCount: count,

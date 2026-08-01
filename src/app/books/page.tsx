@@ -25,38 +25,52 @@ export default async function BooksPage() {
 
         <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
           {books.length === 0 && <li className="text-muted">Nothing published here yet.</li>}
-          {books.map((book) => (
-            <li key={book.id} className="flex flex-col">
-              <a
-                href={book.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-md border border-line shadow-sm transition-transform hover:-translate-y-0.5"
-                aria-label={`Open ${book.title} as PDF`}
-              >
-                <div
-                  className="flex aspect-[7/5] w-full flex-col items-center justify-center gap-2 px-4 text-center"
-                  style={{
-                    background: "linear-gradient(160deg, #f4c88b 0%, #db7a3c 55%, #2a1410 100%)",
-                  }}
-                >
-                  <p className="font-tamil-display text-base text-[#fff8ee] max-w-full">
-                    {book.tamilTitle}
-                  </p>
-                  <p className="text-[0.65rem] tracking-[0.2em] text-[#fff8ee]/85">{book.title}</p>
-                  <div className="h-px w-10 bg-[#fff8ee]/60" />
+          {books.map((book) =>
+            book.kind === "published" ? (
+              <li key={book.id} className="flex flex-col">
+                <div className="overflow-hidden rounded-md border border-line shadow-sm">
+                  <img
+                    src={book.coverImageUrl}
+                    alt={`${book.tamilTitle} cover`}
+                    className="block w-full h-auto"
+                  />
                 </div>
-              </a>
-              <a
-                href={book.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-block text-sm text-amber hover:opacity-75 transition-opacity"
-              >
-                View / download PDF →
-              </a>
-            </li>
-          ))}
+                <p className="mt-3 font-tamil-display text-base">{book.tamilTitle}</p>
+                <p className="text-xs tracking-[0.1em] text-muted">{book.title}</p>
+              </li>
+            ) : (
+              <li key={book.id} className="flex flex-col">
+                <a
+                  href={book.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block overflow-hidden rounded-md border border-line shadow-sm transition-transform hover:-translate-y-0.5"
+                  aria-label={`Open ${book.title} as PDF`}
+                >
+                  <div
+                    className="flex aspect-[7/5] w-full flex-col items-center justify-center gap-2 px-4 text-center"
+                    style={{
+                      background: "linear-gradient(160deg, #f4c88b 0%, #db7a3c 55%, #2a1410 100%)",
+                    }}
+                  >
+                    <p className="font-tamil-display text-base text-[#fff8ee] max-w-full">
+                      {book.tamilTitle}
+                    </p>
+                    <p className="text-[0.65rem] tracking-[0.2em] text-[#fff8ee]/85">{book.title}</p>
+                    <div className="h-px w-10 bg-[#fff8ee]/60" />
+                  </div>
+                </a>
+                <a
+                  href={book.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block text-sm text-amber hover:opacity-75 transition-opacity"
+                >
+                  View / download PDF →
+                </a>
+              </li>
+            )
+          )}
         </ol>
       </main>
       <SiteFooter />
