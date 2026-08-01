@@ -40,6 +40,7 @@ export function TopNav() {
           ))}
           <NavLink href="/media" tamil="குயில்" english="Media" />
           <NavLink href="/books" tamil="வானம்பாடி" english="Books" />
+          <NavLink href="/gallery" tamil="தேன் குருவி" english="Gallery" />
         </nav>
 
         <div className="flex shrink-0 items-center gap-4">

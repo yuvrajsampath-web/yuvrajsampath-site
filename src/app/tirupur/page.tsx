@@ -3,21 +3,30 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CATEGORIES, CATEGORY_BY_SLUG, type CategorySlug } from "@/lib/categories";
-import type { MediaEntry, Writing } from "@/lib/types";
-import { deleteMedia, deleteWriting, listMedia, listWritings } from "@/lib/portal-data";
+import type { GalleryPhoto, MediaEntry, Writing } from "@/lib/types";
+import {
+  deleteGalleryPhoto,
+  deleteMedia,
+  deleteWriting,
+  listGallery,
+  listMedia,
+  listWritings,
+} from "@/lib/portal-data";
 import { PORTAL_PATH } from "@/lib/portal-config";
 
-type Tab = CategorySlug | "media";
+type Tab = CategorySlug | "media" | "gallery";
 
 export default function PortalDashboard() {
   const [writings, setWritings] = useState<Writing[] | null>(null);
   const [media, setMedia] = useState<MediaEntry[] | null>(null);
+  const [gallery, setGallery] = useState<GalleryPhoto[] | null>(null);
   const [tab, setTab] = useState<Tab>("daily");
 
   async function refresh() {
-    const [w, m] = await Promise.all([listWritings(), listMedia()]);
+    const [w, m, g] = await Promise.all([listWritings(), listMedia(), listGallery()]);
     setWritings(w);
     setMedia(m);
+    setGallery(g);
   }
 
   useEffect(() => {
@@ -34,6 +43,12 @@ export default function PortalDashboard() {
   async function handleDeleteMedia(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This can't be undone.`)) return;
     await deleteMedia(id);
+    refresh();
+  }
+
+  async function handleDeleteGalleryPhoto(id: string, caption: string) {
+    if (!confirm(`Delete "${caption}"? This can't be undone.`)) return;
+    await deleteGalleryPhoto(id);
     refresh();
   }
 
@@ -56,6 +71,12 @@ export default function PortalDashboard() {
           className="rounded-full border border-line px-4 py-1.5 text-sm hover:border-amber hover:text-amber transition-colors"
         >
           + குயில்
+        </Link>
+        <Link
+          href={`/${PORTAL_PATH}/gallery/new`}
+          className="rounded-full border border-line px-4 py-1.5 text-sm hover:border-amber hover:text-amber transition-colors"
+        >
+          + தேன் குருவி
         </Link>
       </div>
 
@@ -85,9 +106,20 @@ export default function PortalDashboard() {
         >
           குயில்
         </button>
+        <button
+          onClick={() => setTab("gallery")}
+          className={
+            "pb-2 text-sm border-b-2 -mb-px transition-colors " +
+            (tab === "gallery"
+              ? "border-amber text-amber"
+              : "border-transparent text-muted hover:text-current")
+          }
+        >
+          தேன் குருவி
+        </button>
       </nav>
 
-      {tab !== "media" ? (
+      {tab !== "media" && tab !== "gallery" ? (
         <section>
           {shownWritings === null && <p className="text-muted">Loading…</p>}
           {shownWritings?.length === 0 && <p className="text-muted">Nothing published yet.</p>}
@@ -120,7 +152,7 @@ export default function PortalDashboard() {
             ))}
           </ul>
         </section>
-      ) : (
+      ) : tab === "media" ? (
         <section>
           {media === null && <p className="text-muted">Loading…</p>}
           {media?.length === 0 && <p className="text-muted">Nothing published yet.</p>}
@@ -142,6 +174,35 @@ export default function PortalDashboard() {
                   </Link>
                   <button
                     onClick={() => handleDeleteMedia(m.id, m.title)}
+                    className="text-muted hover:text-red-500 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <section>
+          {gallery === null && <p className="text-muted">Loading…</p>}
+          {gallery?.length === 0 && <p className="text-muted">Nothing published yet.</p>}
+          <ul className="divide-y divide-line border-t border-b border-line">
+            {gallery?.map((g) => (
+              <li key={g.id} className="flex items-center justify-between gap-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wide text-muted">{g.publishedAt}</p>
+                  <p className="truncate">{g.caption}</p>
+                </div>
+                <div className="flex shrink-0 gap-3 text-sm">
+                  <Link
+                    href={`/${PORTAL_PATH}/gallery/${g.id}/edit`}
+                    className="text-amber hover:opacity-75 transition-opacity"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDeleteGalleryPhoto(g.id, g.caption)}
                     className="text-muted hover:text-red-500 transition-colors"
                   >
                     Delete

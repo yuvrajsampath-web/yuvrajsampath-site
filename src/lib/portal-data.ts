@@ -14,11 +14,12 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase/client";
-import type { MediaEntry, Narration, Writing } from "./types";
+import type { GalleryPhoto, MediaEntry, Narration, Writing } from "./types";
 
 const writingsCol = () => collection(db, "writings");
 const mediaCol = () => collection(db, "media");
 const narrationsCol = () => collection(db, "narrations");
+const galleryCol = () => collection(db, "gallery");
 
 export async function listWritings(): Promise<Writing[]> {
   const snap = await getDocs(query(writingsCol(), orderBy("publishedAt", "desc")));
@@ -63,6 +64,28 @@ export async function updateMedia(id: string, data: Partial<Omit<MediaEntry, "id
 
 export async function deleteMedia(id: string) {
   await deleteDoc(doc(mediaCol(), id));
+}
+
+export async function listGallery(): Promise<GalleryPhoto[]> {
+  const snap = await getDocs(query(galleryCol(), orderBy("publishedAt", "desc")));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as GalleryPhoto);
+}
+
+export async function getGalleryPhotoById(id: string): Promise<GalleryPhoto | null> {
+  const snap = await getDoc(doc(galleryCol(), id));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as GalleryPhoto) : null;
+}
+
+export async function createGalleryPhoto(data: Omit<GalleryPhoto, "id">) {
+  await addDoc(galleryCol(), data);
+}
+
+export async function updateGalleryPhoto(id: string, data: Partial<Omit<GalleryPhoto, "id">>) {
+  await updateDoc(doc(galleryCol(), id), data);
+}
+
+export async function deleteGalleryPhoto(id: string) {
+  await deleteDoc(doc(galleryCol(), id));
 }
 
 export async function listNarrations(): Promise<Narration[]> {

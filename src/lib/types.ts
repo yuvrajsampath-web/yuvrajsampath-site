@@ -70,3 +70,11 @@ export interface MediaEntry {
   url: string;
   publishedAt: string; // ISO date
 }
+
+/** A photo in the தேன் குருவி gallery — memorable moments from the author's life, portal-authored. */
+export interface GalleryPhoto {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  publishedAt: string; // ISO date
+}

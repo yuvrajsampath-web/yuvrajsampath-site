@@ -25,5 +25,10 @@ service firebase.storage {
       allow read: if true;
       allow write: if false;
     }
+
+    match /gallery/{fileName} {
+      allow read: if true;
+      allow write: if isAuthor();
+    }
   }
 }

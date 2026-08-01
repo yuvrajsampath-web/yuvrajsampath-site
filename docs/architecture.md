@@ -92,6 +92,14 @@ description. Anywhere the UI needs to show media alongside writings (the
 homepage "More" grid), it's fetched and merged manually, not through the
 category system.
 
+Gallery (தேன் குருவி, `/gallery`) follows the same pattern as Media: its own
+`gallery` Firestore collection and `GalleryPhoto` type (`imageUrl`, `caption`,
+`publishedAt`), portal-authored via `/tirupur/gallery/new` and
+`/tirupur/gallery/[id]/edit` (`GalleryForm.tsx`, uploads straight to Storage
+`gallery/` the same way `WritingForm.tsx` uploads cover images to `covers/`).
+Photos of memorable moments from the author's life — separate from Books
+(வானம்பாடி), which is print compilations of writing.
+
 `format: "plain"` categories store body text as-is (line breaks preserved
 with `whitespace-pre-line`). `format: "rich"` categories store HTML produced
 by the portal's Tiptap editor, rendered via `RichBody`.
@@ -140,12 +148,15 @@ appear until the next deploy.
 /[category]/topics/[topic]     Entries under one topic
 
 /media                         குயில் — podcasts & videos list
+/gallery                       தேன் குருவி — photo gallery
 
 /tirupur                       Hidden portal dashboard (Firebase Auth gated)
 /tirupur/writings/new          New writing form
 /tirupur/writings/[id]/edit    Edit an existing writing
 /tirupur/media/new             New podcast/video entry
 /tirupur/media/[id]/edit       Edit a media entry
+/tirupur/gallery/new           New gallery photo (upload + caption)
+/tirupur/gallery/[id]/edit     Edit a gallery photo
 /tirupur/curate                Select which daily entries go in the next book
 /tirupur/narrate               Record/approve voice notes, delete daily entries
 
@@ -240,14 +251,22 @@ changes, gotchas). Vercel (like Netlify before it) was chosen over Firebase
 Hosting specifically so Cloud Functions (and the Blaze plan they require) are
 never needed.
 
-**One caveat that's bitten this project before**: `firestore.rules` and
-`storage.rules` are **not** part of this deploy — they're separate Firebase
-config with no CLI deploy path currently working from this machine (the
-default service account lacks `serviceusage.services.get`). Any change to
-either file needs to be **pasted manually** into the Firebase console
-(Firestore → Rules / Storage → Rules → publish) after merging. This has
-caused a real outage once already (a nesting mistake in `firestore.rules`
-silently denied all reads/writes until it was caught and fixed).
+**One caveat that's bitten this project before, now resolved**:
+`firestore.rules` and `storage.rules` are **not** part of the Vercel deploy
+above — they're separate Firebase config. For a long stretch the CLI deploy
+path was broken from this machine (`serviceusage.services.get` missing on
+the service account), so every change had to be pasted manually into the
+Firebase console. As of 2026-08-01 that's no longer true — confirmed working:
+`npx firebase-tools@latest deploy --only firestore:rules --project
+website-d60aa` and the same with `--only storage` both succeed and take
+effect immediately (no combined `--only firestore:rules,storage:rules` in
+one call, though — that form errors on "Could not find rules for the
+following storage targets: rules"; run the two separately). Still worth
+double-checking a change actually took effect after deploying — this broke
+the site once before (a nesting mistake in `firestore.rules` silently
+denied all reads/writes until it was caught and fixed), and "the CLI said
+success" is exactly the kind of claim worth a moment's skepticism given how
+long the console-only path was the only option.
 
 ## Design system
 
@@ -302,6 +321,8 @@ storage.rules            Storage security rules (manual publish — see above)
 - **Portal writes go browser → Firestore directly** (no API route) → the
   security boundary is Firebase Auth + rules, not a server we'd otherwise
   have to host.
-- **Rules files need manual publishing** → the CLI path is currently broken
-  (IAM), and this has caused a real incident — treat every rules change as
-  "edit file, then go paste it in the console," not "edit file, done."
+- **Rules file changes need a deliberate publish step** → CLI deploy
+  (`firebase deploy --only firestore:rules` / `--only storage`) works as of
+  2026-08-01, but this has caused a real incident before — treat every rules
+  change as "edit file, then actually deploy/publish it," not "edit file,
+  done."

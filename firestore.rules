@@ -39,5 +39,9 @@ service cloud.firestore {
     match /books/{docId} {
       allow read, write: if false;
     }
+    // தேன் குருவி gallery photos, portal-authored (see src/app/tirupur/gallery).
+    match /gallery/{docId} {
+      allow read, write: if isAuthor();
+    }
   }
 }

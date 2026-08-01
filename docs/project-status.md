@@ -34,10 +34,14 @@ recordings, and import `.docx`/`.pdf` files into the rich editor. Email
 subscribers get a daily குறிஞ்சிட்டு digest plus a Sunday weekly recap of
 everything else, both via Resend/GitHub Actions with auto-unsubscribe for
 inactivity (see "Subscriber digest overhaul" below). There's also a Books
-section (`/books`, வானம்பாடி) — currently empty, now author-curated rather
-than auto-compiled (see "Book curation + voice narration" below) — and a
-நாகணவாய் (Naganavai) category of daily entries the author has read aloud
-himself, published via the portal's new Narrate page.
+section (`/books`, வானம்பாடி) — holding the author's two real published
+books (cover art, no PDF) plus, whenever regenerated, author-curated
+குறிஞ்சிட்டு compilations (see "Book curation + voice narration" below and
+"Author's published books + Gallery" below) — a நாகணவாய் (Naganavai)
+category of daily entries the author has read aloud himself, published via
+the portal's Narrate page, and a Gallery (`/gallery`, தேன் குருவி) of
+memorable photos from the author's life, portal-authored the same way media
+is.
 
 **Known gaps, not bugs:**
 - The About page (`src/app/about/page.tsx`) still has four placeholder bio
@@ -314,6 +318,64 @@ rather than redesigned from scratch:
   the single place that decides upload content-type, rather than trusting
   `Blob.type` directly in one path and the extension in another.
 
+## `getArchive()` mock-data bug fixed (2026-08-01)
+
+Same bug class as the `getBooks()` fix above: `getArchive()` in
+`src/lib/data.ts` treated an empty Firestore query result as "not connected
+to Firebase" and fell back to mock data, so a category with zero real
+entries (e.g. `naganavai` right after its one recording gets reset) would
+silently show a fake mock placeholder instead of the real empty state.
+Fixed the same way `getBooks()` was — don't fall back to mock on an empty
+snapshot, only on a missing/failed Admin SDK connection.
+
+## Author's published books + a new Gallery section (2026-08-01)
+
+Two additions, both content-model changes:
+
+- **Books (`/books`) now also shows the author's real, independently
+  published books** — பொய் வண்ணம் and கொரானாவும் திருப்பூரும் (2020) — not
+  just generated குறிஞ்சிட்டு compilations. `Book` (`src/lib/types.ts`)
+  gained a `kind: "compilation" | "published"` field so `/books` can render
+  either the real cover art (`coverImageUrl`, no link — clicking does
+  nothing, matches what was asked for) or the old gradient PDF-volume card.
+  `scripts/generate-books.mjs` was updated to write `kind: "compilation"`
+  and to offset its `order` past 100 so a future re-run never interleaves
+  with the manually-added published books. The two cover images were
+  uploaded and their Firestore docs created via a one-off script (run once,
+  not committed) — there's no portal UI for adding a "published" book;
+  that's expected to stay rare/manual.
+- **New Gallery section (`/gallery`, தேன் குருவி — "the sunbird")** for
+  memorable photographs from the author's life. Bird name was chosen over
+  கிளி (parrot) after discussing options with the user; sunbird's
+  flower-to-flower nectar-gathering was the metaphor that landed ("gathering
+  the sweetest moments"). Structured exactly like Media (குயில்): its own
+  `gallery` Firestore collection, `GalleryPhoto` type (`imageUrl`, `caption`,
+  `publishedAt`), portal pages at `/tirupur/gallery/new` and
+  `/tirupur/gallery/[id]/edit` (`GalleryForm.tsx`, upload straight to
+  Storage `gallery/`, same pattern as `WritingForm.tsx`'s cover-image
+  upload), and a dashboard tab on `/tirupur` alongside Writings/Media.
+  `getGalleryPhotos()` follows the "empty is a valid state" pattern from the
+  `getArchive()` fix above, not the older buggy one. First photo (a book
+  launch event, captioned "Book launch event") was published for real via a
+  one-off Admin SDK script, the same way the two book covers were — full
+  write-path testing through the actual portal UI wasn't possible without
+  the author's real login (Firebase Auth, not just clearing the `AuthGate`
+  UI check), so that script is how "launch this photo" actually happened;
+  the form itself was still verified visually (renders correctly) and
+  behaviorally (an unauthenticated upload attempt correctly gets rejected
+  with a 403 and shows a clean error, rather than hanging) via the usual
+  throwaway-route pattern.
+
+**Also discovered this session, updates "Working conventions" below**: the
+Firestore/Storage rules CLI deploy path, long documented as broken (IAM),
+now works — `npx firebase-tools@latest deploy --only firestore:rules
+--project website-d60aa` and the equivalent `--only storage` call both
+succeeded and took effect immediately, confirmed by the Gallery form's
+upload correctly being rejected pre-auth. (A single combined `--only
+firestore:rules,storage:rules` call still fails — run the two separately.)
+Not clear when this got fixed or why; worth relying on it going forward but
+still sanity-checking a rules change actually took effect, same as always.
+
 ## Working conventions established on this project
 
 - **Verification sequence before calling anything done:** `npm run lint` →
@@ -334,11 +396,15 @@ rather than redesigned from scratch:
   presence (see `docs/architecture.md`, "Content model" — this was a real bug
   once). When adding a category-specific feature, add a flag to
   `CategoryDef` rather than checking field presence on individual documents.
-- **`firestore.rules` / `storage.rules` changes need manual publishing** in
-  the Firebase console — the CLI deploy path is broken (IAM). This has
-  caused a real outage before (a nesting mistake silently denied all
-  reads/writes). Never assume a rules file change is live just because it's
-  committed.
+- **`firestore.rules` / `storage.rules` changes need a deliberate publish
+  step.** For most of this project's history the CLI deploy path was broken
+  (IAM) and every change had to be pasted manually into the Firebase
+  console; as of 2026-08-01 the CLI works again (`npx firebase-tools@latest
+  deploy --only firestore:rules --project website-d60aa`, and the same with
+  `--only storage` — not combined in one `--only` call, that errors). Either
+  way, a rules change has caused a real outage before (a nesting mistake
+  silently denied all reads/writes) — never assume a rules file change is
+  live just because it's committed; confirm the deploy actually succeeded.
 - **Temporary auth-bypass testing pattern:** to visually verify something
   behind `AuthGate` (portal pages) without real credentials, create a
   throwaway route outside `/tirupur` that renders the same page component

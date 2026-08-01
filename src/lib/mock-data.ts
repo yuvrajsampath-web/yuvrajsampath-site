@@ -1,4 +1,4 @@
-import type { Book, MediaEntry, Writing } from "./types";
+import type { Book, GalleryPhoto, MediaEntry, Writing } from "./types";
 
 export const MOCK_WRITINGS: Writing[] = [
   {
@@ -88,3 +88,12 @@ export const MOCK_MEDIA: MediaEntry[] = [
 // Empty for now — the author curates each volume from the portal (see
 // src/app/tirupur/curate) rather than every daily entry being auto-compiled.
 export const MOCK_BOOKS: Book[] = [];
+
+export const MOCK_GALLERY: GalleryPhoto[] = [
+  {
+    id: "gallery-1",
+    imageUrl: "#",
+    caption: "Book launch event",
+    publishedAt: "2026-06-15",
+  },
+];

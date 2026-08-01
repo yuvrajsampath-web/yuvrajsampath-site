@@ -2,8 +2,8 @@ import "server-only";
 import { cache } from "react";
 import type { Firestore } from "firebase-admin/firestore";
 import type { CategorySlug } from "./categories";
-import type { Book, MediaEntry, Writing } from "./types";
-import { MOCK_BOOKS, MOCK_MEDIA, MOCK_WRITINGS } from "./mock-data";
+import type { Book, GalleryPhoto, MediaEntry, Writing } from "./types";
+import { MOCK_BOOKS, MOCK_GALLERY, MOCK_MEDIA, MOCK_WRITINGS } from "./mock-data";
 
 function hasAdminCredentials() {
   return Boolean(
@@ -132,5 +132,16 @@ export const getBooks = cache(async (): Promise<Book[]> => {
     // valid state (no books curated/generated yet) rather than "not
     // connected" — don't fall back to mock data on empty.
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Book);
+  });
+});
+
+export const getGalleryPhotos = cache(async (): Promise<GalleryPhoto[]> => {
+  const fallback = [...MOCK_GALLERY].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+
+  return withAdmin(fallback, async (db) => {
+    const snap = await db.collection("gallery").orderBy("publishedAt", "desc").get();
+    // Same as getBooks()/getArchive(): an empty result is a real, valid state
+    // (no photos added yet), not "not connected" — don't fall back to mock.
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as GalleryPhoto);
   });
 });
