@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { RichBody } from "@/components/RichBody";
 import { EntryList } from "@/components/EntryList";
 import { CATEGORY_BY_SLUG, isCategorySlug, isMonthKey, monthKeyLabel } from "@/lib/categories";
-import { getArchive } from "@/lib/data";
+import { getByMonth, getWritingWithNeighbors } from "@/lib/data";
 import { formatDate, stripHtml } from "@/lib/format";
 
 export async function generateMetadata({
@@ -22,9 +22,9 @@ export async function generateMetadata({
     return { title: `${monthKeyLabel(id)} — ${def.english}` };
   }
 
-  const entries = await getArchive(category);
-  const writing = entries.find((w) => w.id === id);
-  if (!writing) return {};
+  const found = await getWritingWithNeighbors(category, id);
+  if (!found) return {};
+  const { writing } = found;
 
   const plainBody = def.format === "rich" ? stripHtml(writing.body) : writing.body.replace(/\n+/g, " ");
   const title = def.hasTitle && writing.title ? writing.title : plainBody.slice(0, 60);
@@ -42,7 +42,7 @@ export default async function CategoryIdPage({
   const def = CATEGORY_BY_SLUG[category];
 
   if (def.paginated && isMonthKey(id)) {
-    const entries = (await getArchive(category)).filter((w) => w.publishedAt.startsWith(id));
+    const entries = await getByMonth(category, id);
     if (entries.length === 0) notFound();
 
     return (
@@ -60,12 +60,9 @@ export default async function CategoryIdPage({
     );
   }
 
-  const entries = await getArchive(category);
-  const index = entries.findIndex((w) => w.id === id);
-  if (index === -1) notFound();
-  const writing = entries[index];
-  const newer = index > 0 ? entries[index - 1] : null;
-  const older = index < entries.length - 1 ? entries[index + 1] : null;
+  const found = await getWritingWithNeighbors(category, id);
+  if (!found) notFound();
+  const { writing, newer, older } = found;
 
   return (
     <div className="flex flex-col flex-1">

@@ -4,7 +4,7 @@ import { HomeHero } from "@/components/HomeHero";
 import { MoreWriting, type Preview } from "@/components/MoreWriting";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CATEGORY_BY_SLUG } from "@/lib/categories";
-import { getArchive, getLatestDaily, getMedia } from "@/lib/data";
+import { getLatestDaily, getMedia, getRecentByCategory } from "@/lib/data";
 import { stripHtml } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function HomePage() {
   const [latestDaily, mediaEntries, ...archives] = await Promise.all([
     getLatestDaily(),
     getMedia(),
-    ...PREVIEW_CATEGORIES.map((c) => getArchive(c)),
+    ...PREVIEW_CATEGORIES.map((c) => getRecentByCategory(c, PREVIEW_COUNT)),
   ]);
 
   const previews = Object.fromEntries(

@@ -69,6 +69,97 @@ export const getArchive = cache(async (category: CategorySlug): Promise<Writing[
   });
 });
 
+/**
+ * The newest `max` entries of one category — for previews that only show the
+ * first few, so they don't pay for a whole archive read (see getArchive()).
+ */
+export const getRecentByCategory = cache(
+  async (category: CategorySlug, max: number): Promise<Writing[]> => {
+    const fallback = MOCK_WRITINGS.filter((w) => w.category === category)
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .slice(0, max);
+
+    return withAdmin(fallback, async (db) => {
+      const snap = await db
+        .collection("writings")
+        .where("category", "==", category)
+        .orderBy("publishedAt", "desc")
+        .limit(max)
+        .get();
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Writing);
+    });
+  }
+);
+
+/** One month's entries ("YYYY-MM") — avoids reading the whole archive to filter it. */
+export const getByMonth = cache(
+  async (category: CategorySlug, monthKey: string): Promise<Writing[]> => {
+    const fallback = MOCK_WRITINGS.filter(
+      (w) => w.category === category && w.publishedAt.startsWith(monthKey)
+    ).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+
+    return withAdmin(fallback, async (db) => {
+      const snap = await db
+        .collection("writings")
+        .where("category", "==", category)
+        .where("publishedAt", ">=", monthKey)
+        .where("publishedAt", "<", `${monthKey}`)
+        .orderBy("publishedAt", "desc")
+        .get();
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Writing);
+    });
+  }
+);
+
+export type WritingWithNeighbors = {
+  writing: Writing;
+  newer: Pick<Writing, "id" | "publishedAt"> | null;
+  older: Pick<Writing, "id" | "publishedAt"> | null;
+};
+
+/**
+ * One entry plus its adjacent entries in the category's newest-first order
+ * (the same order getArchive() returns), at ~3 reads instead of the whole
+ * archive. Neighbors are found with a cursor on the entry's own snapshot so
+ * entries sharing a publishedAt keep the same order as the full list.
+ */
+export const getWritingWithNeighbors = cache(
+  async (category: CategorySlug, id: string): Promise<WritingWithNeighbors | null> => {
+    const sorted = MOCK_WRITINGS.filter((w) => w.category === category).sort((a, b) =>
+      b.publishedAt.localeCompare(a.publishedAt)
+    );
+    const i = sorted.findIndex((w) => w.id === id);
+    const fallback: WritingWithNeighbors | null =
+      i === -1 ? null : { writing: sorted[i], newer: sorted[i - 1] ?? null, older: sorted[i + 1] ?? null };
+
+    return withAdmin(fallback, async (db) => {
+      const doc = await db.collection("writings").doc(id).get();
+      if (!doc.exists || doc.data()?.category !== category) return null;
+      const writing = { id: doc.id, ...doc.data() } as Writing;
+
+      const [newerSnap, olderSnap] = await Promise.all([
+        db
+          .collection("writings")
+          .where("category", "==", category)
+          .orderBy("publishedAt", "asc")
+          .startAfter(doc)
+          .limit(1)
+          .get(),
+        db
+          .collection("writings")
+          .where("category", "==", category)
+          .orderBy("publishedAt", "desc")
+          .startAfter(doc)
+          .limit(1)
+          .get(),
+      ]);
+      const pick = (s: typeof newerSnap) =>
+        s.empty ? null : { id: s.docs[0].id, publishedAt: s.docs[0].data().publishedAt as string };
+      return { writing, newer: pick(newerSnap), older: pick(olderSnap) };
+    });
+  }
+);
+
 export const getWriting = cache(async (id: string): Promise<Writing | null> => {
   const fallback = MOCK_WRITINGS.find((w) => w.id === id) ?? null;
 
