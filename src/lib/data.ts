@@ -137,6 +137,9 @@ export const getWritingWithNeighbors = cache(
       if (!doc.exists || doc.data()?.category !== category) return null;
       const writing = { id: doc.id, ...doc.data() } as Writing;
 
+      // The ascending query needs its own composite index (category,
+      // publishedAt ASC). If it's missing or still building, drop only the
+      // "newer" link rather than failing the whole page into the mock fallback.
       const [newerSnap, olderSnap] = await Promise.all([
         db
           .collection("writings")
@@ -144,7 +147,11 @@ export const getWritingWithNeighbors = cache(
           .orderBy("publishedAt", "asc")
           .startAfter(doc)
           .limit(1)
-          .get(),
+          .get()
+          .catch((err) => {
+            console.error("Newer-neighbor query failed:", err);
+            return null;
+          }),
         db
           .collection("writings")
           .where("category", "==", category)
@@ -153,8 +160,8 @@ export const getWritingWithNeighbors = cache(
           .limit(1)
           .get(),
       ]);
-      const pick = (s: typeof newerSnap) =>
-        s.empty ? null : { id: s.docs[0].id, publishedAt: s.docs[0].data().publishedAt as string };
+      const pick = (s: typeof olderSnap | null) =>
+        !s || s.empty ? null : { id: s.docs[0].id, publishedAt: s.docs[0].data().publishedAt as string };
       return { writing, newer: pick(newerSnap), older: pick(olderSnap) };
     });
   }
