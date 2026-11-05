@@ -5,9 +5,8 @@ import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EntryList } from "@/components/EntryList";
 import { CATEGORY_BY_SLUG, isCategorySlug, monthKeyLabel } from "@/lib/categories";
-import { getArchive } from "@/lib/data";
+import { getArchive, getMonthCounts, getRecentByCategory } from "@/lib/data";
 import { formatDate } from "@/lib/format";
-import type { Writing } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -25,17 +24,6 @@ export async function generateMetadata({
   };
 }
 
-function groupByMonth(entries: Writing[]) {
-  const counts = new Map<string, number>();
-  for (const w of entries) {
-    const key = w.publishedAt.slice(0, 7); // YYYY-MM
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-  return Array.from(counts.entries())
-    .map(([monthKey, count]) => ({ monthKey, count }))
-    .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
-}
-
 export default async function CategoryPage({
   params,
 }: {
@@ -45,9 +33,13 @@ export default async function CategoryPage({
   if (!isCategorySlug(category)) notFound();
 
   const def = CATEGORY_BY_SLUG[category];
-  const entries = await getArchive(category);
-  const months = def.paginated ? groupByMonth(entries) : [];
-  const today = def.paginated ? entries[0] : null;
+  // The paginated archive only needs the newest entry and per-month counts,
+  // not every document; other categories list their (few) entries in full.
+  const [entries, months, [today = null]] = await Promise.all([
+    def.paginated ? Promise.resolve([]) : getArchive(category),
+    def.paginated ? getMonthCounts(category) : Promise.resolve([]),
+    def.paginated ? getRecentByCategory(category, 1) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="flex flex-col flex-1">

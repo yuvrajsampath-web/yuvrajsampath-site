@@ -1,7 +1,9 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import type { Firestore } from "firebase-admin/firestore";
-import type { CategorySlug } from "./categories";
+import { CATEGORY_BY_SLUG, type CategorySlug } from "./categories";
+import { stripHtml } from "./format";
 import type { Book, GalleryPhoto, MediaEntry, Writing } from "./types";
 import { MOCK_BOOKS, MOCK_GALLERY, MOCK_MEDIA, MOCK_WRITINGS } from "./mock-data";
 
@@ -111,6 +113,61 @@ export const getByMonth = cache(
   }
 );
 
+export type MonthCount = { monthKey: string; count: number };
+
+/**
+ * Entries per month ("YYYY-MM"), newest month first — for the paginated
+ * archive index. Uses one count() aggregation per month (~1 read each)
+ * rather than reading every document just to bucket them.
+ */
+export const getMonthCounts = cache(async (category: CategorySlug): Promise<MonthCount[]> => {
+  const counts = new Map<string, number>();
+  for (const w of MOCK_WRITINGS) {
+    if (w.category !== category) continue;
+    const key = w.publishedAt.slice(0, 7);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const fallback = Array.from(counts, ([monthKey, count]) => ({ monthKey, count })).sort((a, b) =>
+    b.monthKey.localeCompare(a.monthKey)
+  );
+
+  return withAdmin(fallback, async (db) => {
+    const inCategory = () => db.collection("writings").where("category", "==", category);
+    const [newest, oldest] = await Promise.all([
+      inCategory().orderBy("publishedAt", "desc").limit(1).get(),
+      inCategory().orderBy("publishedAt", "asc").limit(1).get(),
+    ]);
+    if (newest.empty || oldest.empty) return [];
+
+    const first = (oldest.docs[0].data().publishedAt as string).slice(0, 7);
+    const last = (newest.docs[0].data().publishedAt as string).slice(0, 7);
+    const keys: string[] = [];
+    let [y, m] = first.split("-").map(Number);
+    const [lastY, lastM] = last.split("-").map(Number);
+    while (y < lastY || (y === lastY && m <= lastM)) {
+      keys.push(`${y}-${String(m).padStart(2, "0")}`);
+      if (++m > 12) {
+        m = 1;
+        y++;
+      }
+    }
+
+    const results = await Promise.all(
+      keys.map((k) =>
+        inCategory()
+          .where("publishedAt", ">=", k)
+          .where("publishedAt", "<", `${k}\uf8ff`)
+          .count()
+          .get()
+      )
+    );
+    return keys
+      .map((monthKey, i) => ({ monthKey, count: results[i].data().count }))
+      .filter((r) => r.count > 0)
+      .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+  });
+});
+
 export type WritingWithNeighbors = {
   writing: Writing;
   newer: Pick<Writing, "id" | "publishedAt"> | null;
@@ -177,14 +234,28 @@ export const getWriting = cache(async (id: string): Promise<Writing | null> => {
   });
 });
 
+// Only entries that actually carry a topic are read (a plain `topic > ""`
+// range on the automatic single-field index), instead of the whole archive.
+const getTopicTagged = cache(async (category: CategorySlug): Promise<Writing[]> => {
+  const fallback = MOCK_WRITINGS.filter((w) => w.category === category && w.topic);
+
+  return withAdmin(fallback, async (db) => {
+    const snap = await db.collection("writings").where("topic", ">", "").get();
+    return snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }) as Writing)
+      .filter((w) => w.category === category)
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  });
+});
+
 export const getTopics = cache(async (category: CategorySlug): Promise<string[]> => {
-  const all = await getArchive(category);
-  return Array.from(new Set(all.map((w) => w.topic).filter((t): t is string => Boolean(t)))).sort();
+  const tagged = await getTopicTagged(category);
+  return Array.from(new Set(tagged.map((w) => w.topic).filter((t): t is string => Boolean(t)))).sort();
 });
 
 export const getByTopic = cache(async (category: CategorySlug, topic: string): Promise<Writing[]> => {
-  const all = await getArchive(category);
-  return all.filter((w) => w.topic === topic);
+  const tagged = await getTopicTagged(category);
+  return tagged.filter((w) => w.topic === topic);
 });
 
 export const getRecentWritings = cache(async (max: number): Promise<Writing[]> => {
@@ -207,6 +278,59 @@ export const getAllWritings = cache(async (): Promise<Writing[]> => {
     if (snap.empty) return fallback;
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Writing);
   });
+});
+
+export type SearchableWriting = {
+  id: string;
+  category: CategorySlug;
+  title: string;
+  snippet: string;
+  publishedAt: string;
+};
+
+function toSearchable(w: Writing): SearchableWriting | null {
+  const def = CATEGORY_BY_SLUG[w.category];
+  if (!def) return null;
+  const plain = def.format === "rich" ? stripHtml(w.body) : w.body;
+  return {
+    id: w.id,
+    category: w.category,
+    title: def.hasTitle && w.title ? w.title : "",
+    snippet: plain.slice(0, 200),
+    publishedAt: w.publishedAt,
+  };
+}
+
+// Search needs every document's text, so it is the one read that can't be
+// narrowed — cache it across requests instead. Only the trimmed snippets are
+// stored (well under the cache's per-entry size limit). Errors throw so a
+// failed read is never cached; the caller falls back to mock data instead.
+// New posts can lag in search by up to the revalidate window.
+const loadSearchable = unstable_cache(
+  async (): Promise<SearchableWriting[]> => {
+    const { getAdminDb } = await import("./firebase/admin");
+    const snap = await getAdminDb().collection("writings").orderBy("publishedAt", "desc").get();
+    return snap.docs
+      .map((d) => toSearchable({ id: d.id, ...d.data() } as Writing))
+      .filter((w): w is SearchableWriting => w !== null);
+  },
+  ["searchable-writings"],
+  { revalidate: 3600 }
+);
+
+export const getSearchableWritings = cache(async (): Promise<SearchableWriting[]> => {
+  const fallback = [...MOCK_WRITINGS]
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .map(toSearchable)
+    .filter((w): w is SearchableWriting => w !== null);
+  if (!hasAdminCredentials()) return fallback;
+  try {
+    const items = await loadSearchable();
+    return items.length ? items : fallback;
+  } catch (err) {
+    console.error("Search read failed, falling back to mock data:", err);
+    return fallback;
+  }
 });
 
 export const getMedia = cache(async (): Promise<MediaEntry[]> => {

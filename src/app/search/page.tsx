@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { TopNav } from "@/components/TopNav";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SearchClient, type SearchItem } from "@/components/SearchClient";
-import { CATEGORY_BY_SLUG } from "@/lib/categories";
-import { getAllWritings } from "@/lib/data";
-import { stripHtml } from "@/lib/format";
+import { SearchClient } from "@/components/SearchClient";
+import { getSearchableWritings } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SearchPage() {
-  const writings = await getAllWritings();
-
-  const items: SearchItem[] = writings.map((w) => {
-    const def = CATEGORY_BY_SLUG[w.category];
-    const plain = def.format === "rich" ? stripHtml(w.body) : w.body;
-    return {
-      id: w.id,
-      category: w.category,
-      title: def.hasTitle && w.title ? w.title : "",
-      snippet: plain.slice(0, 200),
-      publishedAt: w.publishedAt,
-    };
-  });
+  const items = await getSearchableWritings();
 
   return (
     <div className="flex flex-col flex-1">
