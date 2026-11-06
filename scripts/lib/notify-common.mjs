@@ -2,7 +2,7 @@
 import { cert, initializeApp, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
-export const UNOPENED_LIMIT = 10;
+export const UNOPENED_LIMIT = 180;
 export const SITE_URL = "https://yuvrajsampath.com";
 
 export const CATEGORY_LABELS = {

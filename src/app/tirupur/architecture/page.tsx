@@ -387,7 +387,7 @@ export default function ArchitecturePage() {
             </li>
             <li>
               <strong className="text-ink">/api/webhooks/resend</strong> receives delivery/open
-              events (Svix-verified); an entry unopened for 10 consecutive days is auto-removed
+              events (Svix-verified); a subscriber who hasn&apos;t opened 180 consecutive emails is auto-removed
               — Resend&apos;s free tier caps at 100 emails/day.
             </li>
             <li>

@@ -233,8 +233,8 @@ Sending is entirely via GitHub Actions, not Firebase:
   emailed to them) and sends via Resend, tagging each email with the
   subscriber's id.
 - **`/api/webhooks/resend`** receives Resend's delivery/open events (verified
-  via Svix signing), and an entry that hasn't been opened in 10 consecutive
-  days gets automatically removed — Resend's free tier caps at 100
+  via Svix signing), and a subscriber who hasn't opened 180 consecutive
+  emails gets automatically removed — Resend's free tier caps at 100
   emails/day, so an unengaged list would eventually block real subscribers.
 - **`backup-firestore.yml`** runs nightly and exports every `writings` and
   `media` document to JSON, checked into `backups/`. Firestore has no
